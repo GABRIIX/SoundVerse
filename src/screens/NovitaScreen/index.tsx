@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,21 +7,28 @@ import {
   Image,
   StyleSheet,
   Dimensions,
+  ActivityIndicator,
 } from 'react-native';
-import { HomeTab, SortCriteria } from '../../types';
+import { HomeTab, SortCriteria, Track, Album, Playlist } from '../../types';
 import { TRACKS, ALBUMS, PLAYLISTS } from '../../data/mockData';
 import PlatformBadge from '../../components/PlatformBadge';
 import SortFilterBar from '../../components/SortFilterBar';
 import { usePlayerStore } from '../../store/playerStore';
-import { colors, spacing, radius, typography } from '../../theme';
+import { colors, spacing, radius } from '../../theme';
+import {
+  getNewReleasesTracks,
+  getNewReleasesAlbums,
+  getNewReleasesPlaylists,
+} from '../../services/musicSearchService';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const GRID_COLS = 4;
-const CELL_SIZE = (SCREEN_WIDTH - spacing.base * 2 - spacing.sm * (GRID_COLS - 1)) / GRID_COLS;
+const CELL_SIZE =
+  (SCREEN_WIDTH - spacing.base * 2 - spacing.sm * (GRID_COLS - 1)) / GRID_COLS;
 
 const TABS: { key: HomeTab; label: string }[] = [
-  { key: 'canzoni', label: 'CANZONI' },
-  { key: 'album', label: 'ALBUM' },
+  { key: 'canzoni',  label: 'CANZONI'  },
+  { key: 'album',    label: 'ALBUM'    },
   { key: 'playlist', label: 'PLAYLIST' },
 ];
 
@@ -30,7 +37,53 @@ export default function NovitaScreen() {
   const [sort, setSort] = useState<SortCriteria>('addedDesc');
   const { play } = usePlayerStore();
 
-  const renderTrackCell = ({ item }: { item: typeof TRACKS[0] }) => (
+  // ── data state ────────────────────────────────────────────────────────────
+  const [tracks, setTracks]     = useState<Track[]>(TRACKS);
+  const [albums, setAlbums]     = useState<Album[]>(ALBUMS);
+  const [playlists, setPlaylists] = useState<Playlist[]>(PLAYLISTS);
+  const [loadingTracks,   setLoadingTracks]   = useState(false);
+  const [loadingAlbums,   setLoadingAlbums]   = useState(false);
+  const [loadingPlaylists, setLoadingPlaylists] = useState(false);
+
+  // ── fetch on tab first visit ──────────────────────────────────────────────
+  useEffect(() => {
+    if (activeTab === 'canzoni') {
+      setLoadingTracks(true);
+      getNewReleasesTracks()
+        .then(setTracks)
+        .catch(() => setTracks(TRACKS))
+        .finally(() => setLoadingTracks(false));
+    }
+  }, []);   // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (activeTab === 'album') {
+      setLoadingAlbums(true);
+      getNewReleasesAlbums()
+        .then(setAlbums)
+        .catch(() => setAlbums(ALBUMS))
+        .finally(() => setLoadingAlbums(false));
+    }
+  }, [activeTab === 'album']);   // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (activeTab === 'playlist') {
+      setLoadingPlaylists(true);
+      getNewReleasesPlaylists()
+        .then(setPlaylists)
+        .catch(() => setPlaylists(PLAYLISTS))
+        .finally(() => setLoadingPlaylists(false));
+    }
+  }, [activeTab === 'playlist']);  // eslint-disable-line react-hooks/exhaustive-deps
+
+  const isLoading =
+    (activeTab === 'canzoni'  && loadingTracks)   ||
+    (activeTab === 'album'    && loadingAlbums)   ||
+    (activeTab === 'playlist' && loadingPlaylists);
+
+  // ── cell renderers ────────────────────────────────────────────────────────
+
+  const renderTrackCell = ({ item }: { item: Track }) => (
     <TouchableOpacity style={styles.cell} onPress={() => play(item)} activeOpacity={0.75}>
       <View style={styles.coverWrap}>
         <Image source={{ uri: item.cover }} style={styles.cellCover} />
@@ -38,12 +91,16 @@ export default function NovitaScreen() {
           <PlatformBadge platform={item.platform} size="sm" />
         </View>
       </View>
-      <Text style={styles.cellArtist} numberOfLines={1}>{item.artist.name.toUpperCase()}</Text>
-      <Text style={styles.cellTitle} numberOfLines={1}>{item.title.toUpperCase()}</Text>
+      <Text style={styles.cellArtist} numberOfLines={1}>
+        {item.artist.name.toUpperCase()}
+      </Text>
+      <Text style={styles.cellTitle} numberOfLines={1}>
+        {item.title.toUpperCase()}
+      </Text>
     </TouchableOpacity>
   );
 
-  const renderAlbumCell = ({ item }: { item: typeof ALBUMS[0] }) => (
+  const renderAlbumCell = ({ item }: { item: Album }) => (
     <TouchableOpacity style={styles.cell} activeOpacity={0.75}>
       <View style={styles.coverWrap}>
         <Image source={{ uri: item.cover }} style={styles.cellCover} />
@@ -51,38 +108,44 @@ export default function NovitaScreen() {
           <PlatformBadge platform={item.platform} size="sm" />
         </View>
       </View>
-      <Text style={styles.cellArtist} numberOfLines={1}>{item.artist.name.toUpperCase()}</Text>
-      <Text style={styles.cellTitle} numberOfLines={1}>{item.title.toUpperCase()}</Text>
+      <Text style={styles.cellArtist} numberOfLines={1}>
+        {item.artist.name.toUpperCase()}
+      </Text>
+      <Text style={styles.cellTitle} numberOfLines={1}>
+        {item.title.toUpperCase()}
+      </Text>
     </TouchableOpacity>
   );
 
-  const renderPlaylistCell = ({ item }: { item: typeof PLAYLISTS[0] }) => (
+  const renderPlaylistCell = ({ item }: { item: Playlist }) => (
     <TouchableOpacity style={styles.cell} activeOpacity={0.75}>
       <View style={styles.coverWrap}>
         <Image source={{ uri: item.cover }} style={styles.cellCover} />
         <View style={styles.playlistCountBadge}>
-          <Text style={styles.playlistCountText}>{item.tracks.length}</Text>
+          <Text style={styles.playlistCountText}>{item.tracks.length || '·'}</Text>
         </View>
       </View>
       <Text style={styles.cellArtist} numberOfLines={1} />
-      <Text style={styles.cellTitle} numberOfLines={1}>{item.name.toUpperCase()}</Text>
+      <Text style={styles.cellTitle} numberOfLines={1}>
+        {item.name.toUpperCase()}
+      </Text>
     </TouchableOpacity>
   );
 
-  const data = activeTab === 'canzoni' ? TRACKS : activeTab === 'album' ? ALBUMS : PLAYLISTS;
-
   return (
     <View style={styles.container}>
-      {/* Header */}
+      {/* ── Header ── */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <View style={styles.bullet} />
           <Text style={styles.headerTitle}>NOVITÀ</Text>
         </View>
-        <Text style={styles.headerSub}>{TABS.find(t => t.key === activeTab)?.label}</Text>
+        <Text style={styles.headerSub}>
+          {TABS.find(t => t.key === activeTab)?.label}
+        </Text>
       </View>
 
-      {/* Tabs */}
+      {/* ── Tabs ── */}
       <View style={styles.tabRow}>
         {TABS.map(tab => (
           <TouchableOpacity
@@ -90,7 +153,12 @@ export default function NovitaScreen() {
             onPress={() => setActiveTab(tab.key)}
             style={styles.tabBtn}
           >
-            <Text style={[styles.tabLabel, activeTab === tab.key && styles.tabLabelActive]}>
+            <Text
+              style={[
+                styles.tabLabel,
+                activeTab === tab.key && styles.tabLabelActive,
+              ]}
+            >
               {tab.label}
             </Text>
             {activeTab === tab.key && <View style={styles.tabUnderline} />}
@@ -98,13 +166,20 @@ export default function NovitaScreen() {
         ))}
       </View>
 
-      {/* Sort bar */}
+      {/* ── Sort bar ── */}
       <SortFilterBar value={sort} onChange={setSort} />
 
-      {/* Grid */}
-      {activeTab === 'canzoni' && (
+      {/* ── Loading spinner ── */}
+      {isLoading && (
+        <View style={styles.loader}>
+          <ActivityIndicator size="large" color={colors.accent} />
+        </View>
+      )}
+
+      {/* ── Grid ── */}
+      {!isLoading && activeTab === 'canzoni' && (
         <FlatList
-          data={TRACKS}
+          data={tracks}
           keyExtractor={i => i.id}
           renderItem={renderTrackCell}
           numColumns={GRID_COLS}
@@ -112,9 +187,9 @@ export default function NovitaScreen() {
           showsVerticalScrollIndicator={false}
         />
       )}
-      {activeTab === 'album' && (
+      {!isLoading && activeTab === 'album' && (
         <FlatList
-          data={ALBUMS}
+          data={albums}
           keyExtractor={i => i.id}
           renderItem={renderAlbumCell}
           numColumns={GRID_COLS}
@@ -122,9 +197,9 @@ export default function NovitaScreen() {
           showsVerticalScrollIndicator={false}
         />
       )}
-      {activeTab === 'playlist' && (
+      {!isLoading && activeTab === 'playlist' && (
         <FlatList
-          data={PLAYLISTS}
+          data={playlists}
           keyExtractor={i => i.id}
           renderItem={renderPlaylistCell}
           numColumns={GRID_COLS}
@@ -137,10 +212,8 @@ export default function NovitaScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
+  container: { flex: 1, backgroundColor: colors.background },
+
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -149,11 +222,7 @@ const styles = StyleSheet.create({
     paddingTop: spacing.lg,
     paddingBottom: spacing.md,
   },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
+  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   bullet: {
     width: 7,
     height: 7,
@@ -172,6 +241,7 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     letterSpacing: 1.5,
   },
+
   tabRow: {
     flexDirection: 'row',
     paddingHorizontal: spacing.base,
@@ -199,29 +269,23 @@ const styles = StyleSheet.create({
     height: 2,
     backgroundColor: colors.accent,
   },
-  grid: {
-    padding: spacing.base,
-    gap: spacing.sm,
+
+  loader: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  cell: {
-    width: CELL_SIZE,
-    marginRight: spacing.sm,
-    marginBottom: spacing.md,
-  },
-  coverWrap: {
-    position: 'relative',
-  },
+
+  grid: { padding: spacing.base, gap: spacing.sm },
+  cell: { width: CELL_SIZE, marginRight: spacing.sm, marginBottom: spacing.md },
+  coverWrap: { position: 'relative' },
   cellCover: {
     width: CELL_SIZE,
     height: CELL_SIZE,
     borderRadius: radius.xs,
     backgroundColor: colors.surfaceVariant,
   },
-  badgeOverlay: {
-    position: 'absolute',
-    bottom: 4,
-    right: 4,
-  },
+  badgeOverlay: { position: 'absolute', bottom: 4, right: 4 },
   playlistCountBadge: {
     position: 'absolute',
     bottom: 4,
@@ -231,11 +295,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
     paddingVertical: 2,
   },
-  playlistCountText: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: colors.text,
-  },
+  playlistCountText: { fontSize: 9, fontWeight: '700', color: colors.text },
   cellArtist: {
     fontSize: 9,
     fontWeight: '600',
