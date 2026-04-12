@@ -6,6 +6,15 @@ export const colors = {
   surfaceElevated: '#202020',
   surfaceModal: '#0C0C0C',
 
+  // Material 3 tokens (dark scheme)
+  md3Surface: '#111318',
+  md3SurfaceContainer: '#1D1F24',
+  md3SurfaceContainerHigh: '#272A2F',
+  md3OnSurface: '#E2E2E9',
+  md3OnSurfaceVariant: '#C4C6D0',
+  md3Outline: '#8E9099',
+  md3OutlineVariant: '#44464F',
+
   // Accent — purple
   accent: '#7B2FBE',
   accentLight: '#9D50E0',

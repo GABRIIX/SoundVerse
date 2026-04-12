@@ -1,28 +1,25 @@
 import React from 'react';
-import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, spacing, TAB_BAR_HEIGHT } from '../theme';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { colors, TAB_BAR_HEIGHT } from '../theme';
 import { useSettingsStore } from '../store/settingsStore';
 
-type TabRoute = 'Profile' | 'Settings' | 'Home' | 'Playlist' | 'Search';
+type TabRoute = 'Home' | 'Search' | 'Playlist' | 'Profile' | 'Settings';
 
-// Unicode outline-style icons matching the screenshot
-const TAB_ICONS: Record<TabRoute, string> = {
-  Profile: '⊙',   // person
-  Settings: '✦',  // settings/gear approximation
-  Home: '⌂',      // home
-  Playlist: '⊞',  // grid/playlist
-  Search: '⊕',    // search
+type IconSet = {
+  active: keyof typeof MaterialCommunityIcons.glyphMap;
+  inactive: keyof typeof MaterialCommunityIcons.glyphMap;
+  label: string;
 };
 
-// Emoji icons as fallback — matches screenshot more closely
-const EMOJI_ICONS: Record<TabRoute, string> = {
-  Profile: '○',
-  Settings: '⚙',
-  Home: '⌂',
-  Playlist: '▣',
-  Search: '◎',
+const TAB_CONFIG: Record<TabRoute, IconSet> = {
+  Home:     { active: 'home',              inactive: 'home-outline',           label: 'Home'      },
+  Search:   { active: 'magnify',           inactive: 'magnify',                label: 'Cerca'     },
+  Playlist: { active: 'playlist-music',    inactive: 'playlist-music-outline', label: 'Playlist'  },
+  Profile:  { active: 'account-circle',    inactive: 'account-circle-outline', label: 'Profilo'   },
+  Settings: { active: 'cog',              inactive: 'cog-outline',            label: 'Impostaz.' },
 };
 
 export default function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
@@ -30,15 +27,11 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
   const accent = useSettingsStore(s => s.settings.accentColor);
 
   return (
-    <View
-      style={[
-        styles.container,
-        { paddingBottom: Math.max(insets.bottom, 6) },
-      ]}
-    >
+    <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 8) }]}>
       {state.routes.map((route, index) => {
         const isFocused = state.index === index;
         const routeName = route.name as TabRoute;
+        const config = TAB_CONFIG[routeName];
 
         const onPress = () => {
           const event = navigation.emit({
@@ -56,21 +49,30 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
             key={route.key}
             onPress={onPress}
             style={styles.tab}
-            activeOpacity={0.6}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityState={{ selected: isFocused }}
+            accessibilityLabel={config.label}
           >
-            {/* Active dot above icon */}
-            {isFocused && (
-              <View style={[styles.activeDot, { backgroundColor: accent }]} />
-            )}
-            <Text
-              style={[
-                styles.icon,
-                isFocused
-                  ? { color: '#FFFFFF', transform: [{ scale: 1.1 }] }
-                  : { color: '#444444' },
-              ]}
-            >
-              {EMOJI_ICONS[routeName]}
+            {/* MD3 pill indicator */}
+            <View style={[
+              styles.indicator,
+              isFocused && { backgroundColor: accent + '30' },
+            ]}>
+              <MaterialCommunityIcons
+                name={isFocused ? config.active : config.inactive}
+                size={24}
+                color={isFocused ? accent : colors.md3OnSurfaceVariant}
+              />
+            </View>
+
+            {/* Label */}
+            <Text style={[
+              styles.label,
+              { color: isFocused ? accent : colors.md3OnSurfaceVariant },
+              isFocused && { fontWeight: '600' },
+            ]}>
+              {config.label}
             </Text>
           </TouchableOpacity>
         );
@@ -81,27 +83,31 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#000000',
     flexDirection: 'row',
-    borderTopWidth: 1,
-    borderTopColor: '#1A1A1A',
+    backgroundColor: colors.md3Surface,
     paddingTop: 8,
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
   tab: {
     flex: 1,
-    height: TAB_BAR_HEIGHT - 10,
     alignItems: 'center',
     justifyContent: 'center',
-    position: 'relative',
+    gap: 4,
+    minHeight: TAB_BAR_HEIGHT - 10,
   },
-  activeDot: {
-    position: 'absolute',
-    top: -2,
-    width: 4,
-    height: 4,
-    borderRadius: 2,
+  indicator: {
+    width: 64,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  icon: {
-    fontSize: 22,
+  label: {
+    fontSize: 10,
+    letterSpacing: 0.3,
   },
 });
