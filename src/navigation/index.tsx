@@ -51,12 +51,12 @@ function TabNavigator() {
         tabBar={(props) => <CustomTabBar {...props} />}
         screenOptions={{ headerShown: false }}
       >
-        {/* Order matches spec: Profile → Settings → Home → Playlist → Search */}
+        {/* Home first so app opens on Novità by default */}
+        <Tab.Screen name="Home" component={HomeSwiperScreen} />
+        <Tab.Screen name="Search" component={SearchScreen} />
+        <Tab.Screen name="Playlist" component={PlaylistScreen} />
         <Tab.Screen name="Profile" component={ProfileScreen} />
         <Tab.Screen name="Settings" component={SettingsScreen} />
-        <Tab.Screen name="Home" component={HomeSwiperScreen} />
-        <Tab.Screen name="Playlist" component={PlaylistScreen} />
-        <Tab.Screen name="Search" component={SearchScreen} />
       </Tab.Navigator>
       <MiniPlayer />
     </View>
