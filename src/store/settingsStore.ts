@@ -8,6 +8,7 @@ const defaultSettings: AppSettings = {
   backgroundColor: '#0D0D0D',
   textColor: '#FFFFFF',
   fontSize: 'normal',
+  fontFamily: 'Koulen',
   reduceAnimations: false,
   highContrast: false,
   hapticFeedback: true,

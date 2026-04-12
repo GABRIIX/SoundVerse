@@ -146,6 +146,7 @@ export interface AppSettings {
   backgroundColor: string;
   textColor: string;
   fontSize: 'small' | 'normal' | 'large' | 'xlarge';
+  fontFamily: 'Koulen' | 'Oswald' | 'BebasNeue' | 'Anton' | 'RussoOne' | 'System';
   reduceAnimations: boolean;
   highContrast: boolean;
   hapticFeedback: boolean;

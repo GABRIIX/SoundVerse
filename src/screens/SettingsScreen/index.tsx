@@ -7,12 +7,14 @@ import {
   Switch,
   StyleSheet,
   Alert,
+  Modal,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSettingsStore } from '../../store/settingsStore';
 import { colors, spacing, typography } from '../../theme';
 import { AppSettings, QualityOption, AudioFormat } from '../../types';
 import ScreenHeader from '../../components/ScreenHeader';
+import { FONT_OPTIONS, FONT_MAP, FontFamily } from '../../context/FontContext';
 
 // ─── Row components ───────────────────────────────────────────────────────────
 
@@ -80,6 +82,9 @@ export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const { settings: s, update, reset } = useSettingsStore();
   const tog = (key: keyof AppSettings) => update({ [key]: !s[key] } as any);
+  const [fontPickerOpen, setFontPickerOpen] = useState(false);
+
+  const currentFont = FONT_OPTIONS.find(f => f.key === s.fontFamily) ?? FONT_OPTIONS[0];
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -103,6 +108,11 @@ export default function SettingsScreen() {
 
         {/* ASPETTO */}
         <SectionHeader title="ASPETTO" />
+        <SettingRow
+          label="FONT"
+          value={currentFont.label}
+          onPress={() => setFontPickerOpen(true)}
+        />
         <SettingRow
           label="TEMA"
           value={s.theme === 'dark' ? 'SCURO' : s.theme === 'light' ? 'CHIARO' : 'SISTEMA'}
@@ -264,6 +274,51 @@ export default function SettingsScreen() {
           <Text style={styles.rowValue}>⭐</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Font Picker Modal */}
+      <Modal
+        visible={fontPickerOpen}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setFontPickerOpen(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modal}>
+            <Text style={styles.modalTitle}>SCEGLI FONT</Text>
+            {FONT_OPTIONS.map(opt => {
+              const isSelected = s.fontFamily === opt.key;
+              const fontStyle = opt.fontName ? { fontFamily: opt.fontName } : {};
+              return (
+                <TouchableOpacity
+                  key={opt.key}
+                  style={[styles.fontOption, isSelected && styles.fontOptionActive]}
+                  onPress={() => {
+                    update({ fontFamily: opt.key as FontFamily });
+                    setFontPickerOpen(false);
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.fontOptionLabel, fontStyle]}>
+                      {opt.label}
+                    </Text>
+                    <Text style={styles.fontOptionDesc}>{opt.description}</Text>
+                  </View>
+                  {isSelected && (
+                    <Text style={[styles.fontCheck, { color: colors.accent }]}>✓</Text>
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+            <TouchableOpacity
+              style={styles.modalClose}
+              onPress={() => setFontPickerOpen(false)}
+            >
+              <Text style={styles.modalCloseText}>CHIUDI</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -304,5 +359,67 @@ const styles = StyleSheet.create({
   dangerLabel: {
     ...typography.rowLabel,
     color: colors.textSecondary,
+  },
+  // Font picker modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.75)',
+    justifyContent: 'flex-end',
+  },
+  modal: {
+    backgroundColor: colors.surfaceElevated,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: spacing.xl,
+    gap: spacing.xs,
+    borderTopWidth: 1,
+    borderColor: colors.borderFaint,
+  },
+  modalTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.textSecondary,
+    letterSpacing: 2,
+    textAlign: 'center',
+    marginBottom: spacing.md,
+  },
+  fontOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.base,
+    borderTopWidth: 1,
+    borderTopColor: colors.borderFaint,
+  },
+  fontOptionActive: {
+    backgroundColor: colors.accentContainer,
+  },
+  fontOptionLabel: {
+    fontSize: 22,
+    color: colors.text,
+    letterSpacing: 1,
+  },
+  fontOptionDesc: {
+    fontSize: 11,
+    color: colors.textSecondary,
+    marginTop: 2,
+    letterSpacing: 0.3,
+  },
+  fontCheck: {
+    fontSize: 20,
+    marginLeft: spacing.md,
+  },
+  modalClose: {
+    marginTop: spacing.md,
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+    backgroundColor: colors.surfaceVariant,
+    borderRadius: 8,
+  },
+  modalCloseText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.textSecondary,
+    letterSpacing: 1.5,
   },
 });
