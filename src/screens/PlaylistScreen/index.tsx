@@ -18,6 +18,7 @@ import TrackCard from '../../components/TrackCard';
 import SortFilterBar from '../../components/SortFilterBar';
 import { usePlayerStore } from '../../store/playerStore';
 import { colors, spacing, radius, typography } from '../../theme';
+import ScreenHeader from '../../components/ScreenHeader';
 
 export default function PlaylistScreen() {
   const insets = useSafeAreaInsets();
@@ -56,7 +57,7 @@ export default function PlaylistScreen() {
     Alert.alert('Elimina playlist', `Vuoi eliminare "${pl.name}"?`, [
       { text: 'Annulla', style: 'cancel' },
       {
-        text: 'Elimina',
+        text: 'ELIMINA',
         style: 'destructive',
         onPress: () => setPlaylists(prev => prev.filter(p => p.id !== pl.id)),
       },
@@ -72,15 +73,11 @@ export default function PlaylistScreen() {
       <Image source={{ uri: item.cover }} style={styles.plCover} />
       <View style={styles.plInfo}>
         <Text style={styles.plName} numberOfLines={1}>
-          {item.name}
-          {item.isSystem && ' ⭐'}
+          {item.name.toUpperCase()}{item.isSystem ? ' ★' : ''}
         </Text>
-        <Text style={styles.plCount}>{item.tracks.length} brani</Text>
-        {item.isPrivate && (
-          <View style={styles.privBadge}>
-            <Text style={styles.privText}>PRIVATA</Text>
-          </View>
-        )}
+        <Text style={styles.plMeta}>
+          {item.tracks.length} BRANI{item.isPrivate ? '  ·  PRIVATA' : ''}
+        </Text>
       </View>
       <TouchableOpacity
         onPress={() => handleDeletePlaylist(item)}
@@ -91,31 +88,30 @@ export default function PlaylistScreen() {
     </TouchableOpacity>
   );
 
+  // ─── Playlist detail view ──────────────────────────────────────────────────
   if (selectedPlaylist) {
     return (
       <View style={[styles.container, { paddingTop: insets.top }]}>
-        {/* Playlist detail header */}
-        <View style={styles.detailHeader}>
-          <TouchableOpacity onPress={() => setSelectedPlaylist(null)} style={styles.backBtn}>
-            <Text style={styles.backBtnText}>‹ Indietro</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => {
-              if (selectedPlaylist.tracks.length > 0) {
-                play(selectedPlaylist.tracks[0], selectedPlaylist);
-              }
-            }}
-            style={styles.playAllBtn}
-          >
-            <Text style={styles.playAllText}>▶ RIPRODUCI</Text>
-          </TouchableOpacity>
-        </View>
+        <ScreenHeader
+          title={selectedPlaylist.name.toUpperCase()}
+          rightLabel="‹ INDIETRO"
+          onRightPress={() => setSelectedPlaylist(null)}
+        />
 
         <View style={styles.detailCoverRow}>
           <Image source={{ uri: selectedPlaylist.cover }} style={styles.detailCover} />
           <View style={styles.detailMeta}>
-            <Text style={styles.detailName}>{selectedPlaylist.name}</Text>
-            <Text style={styles.detailCount}>{selectedPlaylist.tracks.length} brani</Text>
+            <Text style={styles.detailCount}>{selectedPlaylist.tracks.length} BRANI</Text>
+            <TouchableOpacity
+              onPress={() => {
+                if (selectedPlaylist.tracks.length > 0) {
+                  play(selectedPlaylist.tracks[0], selectedPlaylist);
+                }
+              }}
+              style={styles.playAllBtn}
+            >
+              <Text style={styles.playAllText}>▶  RIPRODUCI TUTTO</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -132,20 +128,20 @@ export default function PlaylistScreen() {
             />
           )}
           showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: spacing.xxxl }}
         />
       </View>
     );
   }
 
+  // ─── Playlist list view ────────────────────────────────────────────────────
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>PLAYLIST</Text>
-        <TouchableOpacity onPress={() => setCreateOpen(true)} style={styles.addBtn}>
-          <Text style={styles.addBtnText}>＋</Text>
-        </TouchableOpacity>
-      </View>
+      <ScreenHeader
+        title="PLAYLIST"
+        rightLabel="+ CREA"
+        onRightPress={() => setCreateOpen(true)}
+      />
 
       <SortFilterBar value={sort} onChange={setSort} />
 
@@ -161,23 +157,24 @@ export default function PlaylistScreen() {
       <Modal visible={createOpen} transparent animationType="slide" onRequestClose={() => setCreateOpen(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modal}>
-            <Text style={styles.modalTitle}>Nuova Playlist</Text>
+            <Text style={styles.modalTitle}>NUOVA PLAYLIST</Text>
 
             <TextInput
               style={styles.input}
-              placeholder="Nome playlist"
+              placeholder="NOME PLAYLIST"
               placeholderTextColor={colors.textMuted}
               value={newName}
               onChangeText={setNewName}
               autoFocus
+              autoCapitalize="characters"
             />
 
             <View style={styles.switchRow}>
-              <Text style={styles.switchLabel}>Privata</Text>
+              <Text style={styles.switchLabel}>PRIVATA</Text>
               <Switch
                 value={newPrivate}
                 onValueChange={setNewPrivate}
-                trackColor={{ false: colors.border, true: colors.accent }}
+                trackColor={{ false: '#2A2A2A', true: colors.accent }}
                 thumbColor="#FFFFFF"
               />
             </View>
@@ -187,10 +184,10 @@ export default function PlaylistScreen() {
                 onPress={() => setCreateOpen(false)}
                 style={styles.modalCancelBtn}
               >
-                <Text style={styles.modalCancelText}>Annulla</Text>
+                <Text style={styles.modalCancelText}>ANNULLA</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={handleCreate} style={styles.modalCreateBtn}>
-                <Text style={styles.modalCreateText}>Crea</Text>
+                <Text style={styles.modalCreateText}>CREA</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -202,72 +199,39 @@ export default function PlaylistScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: spacing.base,
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.sm,
-  },
-  headerTitle: {
-    ...typography.headlineSmall,
-    color: colors.text,
-    letterSpacing: 2,
-  },
-  addBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.accent,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  addBtnText: {
-    fontSize: 20,
-    color: '#FFF',
-    lineHeight: 22,
-  },
   listContent: { paddingBottom: spacing.xxxl },
+
+  // Playlist row
   playlistItem: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.base,
-    paddingVertical: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderFaint,
+    paddingVertical: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.borderFaint,
   },
   plCover: {
-    width: 60,
-    height: 60,
-    borderRadius: radius.sm,
+    width: 56,
+    height: 56,
+    borderRadius: radius.xs,
     backgroundColor: colors.surfaceVariant,
   },
   plInfo: {
     flex: 1,
     marginLeft: spacing.md,
-    gap: 3,
+    gap: 4,
   },
   plName: {
-    ...typography.titleSmall,
+    fontSize: 15,
+    fontWeight: '900',
     color: colors.text,
-  },
-  plCount: {
-    ...typography.bodySmall,
-    color: colors.textSecondary,
-  },
-  privBadge: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: radius.xs,
-    backgroundColor: colors.surfaceVariant,
-  },
-  privText: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: colors.textMuted,
     letterSpacing: 0.5,
+  },
+  plMeta: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.textSecondary,
+    letterSpacing: 1,
   },
   moreBtn: {
     color: colors.textMuted,
@@ -275,53 +239,44 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
     letterSpacing: 1,
   },
+
   // Detail view
-  detailHeader: {
+  detailCoverRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: spacing.base,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.sm,
+    paddingVertical: spacing.lg,
+    gap: spacing.base,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderFaint,
   },
-  backBtn: { padding: spacing.xs },
-  backBtnText: {
-    ...typography.titleMedium,
-    color: colors.accent,
+  detailCover: {
+    width: 90,
+    height: 90,
+    borderRadius: radius.sm,
+    backgroundColor: colors.surfaceVariant,
+  },
+  detailMeta: { flex: 1, gap: spacing.sm },
+  detailCount: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.textSecondary,
+    letterSpacing: 1.5,
   },
   playAllBtn: {
+    alignSelf: 'flex-start',
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
     borderRadius: radius.full,
     backgroundColor: colors.accent,
   },
   playAllText: {
-    ...typography.labelMedium,
+    fontSize: 11,
+    fontWeight: '700',
     color: '#FFF',
-    letterSpacing: 1,
+    letterSpacing: 1.5,
   },
-  detailCoverRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: spacing.base,
-    gap: spacing.base,
-  },
-  detailCover: {
-    width: 100,
-    height: 100,
-    borderRadius: radius.md,
-    backgroundColor: colors.surfaceVariant,
-  },
-  detailMeta: { flex: 1 },
-  detailName: {
-    ...typography.headlineSmall,
-    color: colors.text,
-    marginBottom: spacing.xs,
-  },
-  detailCount: {
-    ...typography.bodyMedium,
-    color: colors.textSecondary,
-  },
+
   // Modal
   modalOverlay: {
     flex: 1,
@@ -338,18 +293,22 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   modalTitle: {
-    ...typography.titleLarge,
+    fontSize: 18,
+    fontWeight: '900',
     color: colors.text,
+    letterSpacing: 2,
     textAlign: 'center',
     marginBottom: spacing.sm,
   },
   input: {
     backgroundColor: colors.surfaceVariant,
-    borderRadius: radius.md,
+    borderRadius: radius.sm,
     paddingHorizontal: spacing.base,
     paddingVertical: spacing.md,
     color: colors.text,
-    ...typography.bodyLarge,
+    fontSize: 14,
+    fontWeight: '700',
+    letterSpacing: 1,
     borderWidth: 1,
     borderColor: colors.border,
   },
@@ -358,10 +317,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: colors.borderFaint,
   },
   switchLabel: {
-    ...typography.bodyLarge,
+    fontSize: 14,
+    fontWeight: '700',
     color: colors.text,
+    letterSpacing: 1,
   },
   modalBtns: {
     flexDirection: 'row',
@@ -371,24 +334,27 @@ const styles = StyleSheet.create({
   modalCancelBtn: {
     flex: 1,
     paddingVertical: spacing.md,
-    borderRadius: radius.md,
+    borderRadius: radius.sm,
     backgroundColor: colors.surfaceVariant,
     alignItems: 'center',
   },
   modalCancelText: {
-    ...typography.labelLarge,
+    fontSize: 12,
+    fontWeight: '700',
     color: colors.textSecondary,
+    letterSpacing: 1.5,
   },
   modalCreateBtn: {
     flex: 1,
     paddingVertical: spacing.md,
-    borderRadius: radius.md,
+    borderRadius: radius.sm,
     backgroundColor: colors.accent,
     alignItems: 'center',
   },
   modalCreateText: {
-    ...typography.labelLarge,
-    color: '#FFF',
+    fontSize: 12,
     fontWeight: '700',
+    color: '#FFF',
+    letterSpacing: 1.5,
   },
 });

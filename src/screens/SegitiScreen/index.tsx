@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -18,7 +18,7 @@ export default function SegitiScreen() {
   const renderArtist = ({ item }: { item: typeof ARTISTS[0] }) => (
     <TouchableOpacity style={styles.artistItem} activeOpacity={0.75}>
       <Image source={{ uri: item.avatar }} style={styles.avatar} />
-      <Text style={styles.artistName} numberOfLines={1}>{item.name}</Text>
+      <Text style={styles.artistName} numberOfLines={1}>{item.name.toUpperCase()}</Text>
     </TouchableOpacity>
   );
 
@@ -30,14 +30,13 @@ export default function SegitiScreen() {
     >
       <Image source={{ uri: item.cover }} style={styles.trackCover} />
       <View style={styles.trackInfo}>
-        <Text style={styles.trackTitle} numberOfLines={1}>{item.title}</Text>
-        <Text style={styles.trackArtist} numberOfLines={1}>{item.artist.name}</Text>
+        <Text style={styles.trackTitle} numberOfLines={1}>{item.title.toUpperCase()}</Text>
+        <Text style={styles.trackArtist} numberOfLines={1}>{item.artist.name.toUpperCase()}</Text>
         <PlatformBadge platform={item.platform} size="sm" />
       </View>
     </TouchableOpacity>
   );
 
-  // Sort tracks by release date desc
   const sortedTracks = [...TRACKS].sort(
     (a, b) => new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime(),
   );
@@ -46,7 +45,10 @@ export default function SegitiScreen() {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>SEGUITI</Text>
+        <View style={styles.headerLeft}>
+          <View style={styles.bullet} />
+          <Text style={styles.headerTitle}>SEGUITI</Text>
+        </View>
       </View>
 
       <View style={styles.columns}>
@@ -89,14 +91,28 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: spacing.base,
     paddingTop: spacing.lg,
-    paddingBottom: spacing.sm,
+    paddingBottom: spacing.md,
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  bullet: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: colors.text,
   },
   headerTitle: {
-    ...typography.headlineSmall,
+    fontSize: 22,
+    fontWeight: '900',
     color: colors.text,
-    letterSpacing: 2,
+    letterSpacing: 1.5,
   },
   columns: {
     flex: 1,
@@ -112,14 +128,16 @@ const styles = StyleSheet.create({
   },
   divider: {
     width: 1,
-    backgroundColor: colors.border,
+    backgroundColor: colors.borderFaint,
     marginVertical: spacing.sm,
     marginHorizontal: spacing.sm,
   },
   colHeader: {
-    ...typography.labelSmall,
-    color: colors.textMuted,
-    letterSpacing: 1.5,
+    fontSize: 9,
+    fontWeight: '600',
+    color: colors.textSecondary,
+    letterSpacing: 2,
+    textTransform: 'uppercase',
     marginBottom: spacing.sm,
     marginTop: spacing.xs,
   },
@@ -132,16 +150,18 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   avatar: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    width: 68,
+    height: 68,
+    borderRadius: 34,
     backgroundColor: colors.surfaceVariant,
   },
   artistName: {
-    ...typography.labelSmall,
+    fontSize: 9,
+    fontWeight: '700',
     color: colors.textSecondary,
     textAlign: 'center',
     marginTop: 4,
+    letterSpacing: 0.5,
   },
   trackList: {
     paddingBottom: spacing.xl,
@@ -151,13 +171,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.surface,
-    borderRadius: radius.sm,
+    borderRadius: radius.xs,
     overflow: 'hidden',
     marginBottom: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.borderFaint,
   },
   trackCover: {
-    width: 64,
-    height: 64,
+    width: 56,
+    height: 56,
     backgroundColor: colors.surfaceVariant,
   },
   trackInfo: {
@@ -166,11 +188,15 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   trackTitle: {
-    ...typography.titleSmall,
+    fontSize: 11,
+    fontWeight: '900',
     color: colors.text,
+    letterSpacing: 0.3,
   },
   trackArtist: {
-    ...typography.bodySmall,
+    fontSize: 9,
+    fontWeight: '600',
     color: colors.textSecondary,
+    letterSpacing: 0.5,
   },
 });

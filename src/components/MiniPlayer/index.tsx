@@ -7,8 +7,9 @@ import {
   StyleSheet,
   Pressable,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { usePlayerStore } from '../../store/playerStore';
-import { colors, spacing, radius, typography, MINI_PLAYER_HEIGHT, shadows } from '../../theme';
+import { colors, gradients, spacing, radius, typography, MINI_PLAYER_HEIGHT } from '../../theme';
 
 export default function MiniPlayer() {
   const {
@@ -24,61 +25,63 @@ export default function MiniPlayer() {
   if (!currentTrack) return null;
 
   return (
-    <Pressable onPress={togglePlayerExpanded} style={styles.container}>
-      {/* Left: cover + info */}
-      <View style={styles.left}>
+    <Pressable onPress={togglePlayerExpanded}>
+      <LinearGradient
+        colors={gradients.miniPlayer}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={styles.container}
+      >
+        {/* Cover */}
         <Image source={{ uri: currentTrack.cover }} style={styles.cover} />
+
+        {/* Track info */}
         <View style={styles.info}>
-          <Text style={styles.title} numberOfLines={1}>
+          <Text style={styles.trackName} numberOfLines={1}>
             {currentTrack.title}
           </Text>
-          <View style={styles.subRow}>
-            <Text style={styles.artist} numberOfLines={1}>
-              {currentTrack.artist.name}
-            </Text>
-            <View style={styles.genreBadge}>
-              <Text style={styles.genreText}>{currentTrack.genre.toUpperCase()}</Text>
-            </View>
-          </View>
-        </View>
-      </View>
-
-      {/* Right: controls */}
-      <View style={styles.controls}>
-        <TouchableOpacity
-          onPress={(e) => { e.stopPropagation(); prev(); }}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          style={styles.iconBtn}
-        >
-          <Text style={styles.icon}>⏮</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={(e) => { e.stopPropagation(); togglePlayPause(); }}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          style={[styles.iconBtn, styles.playBtn]}
-        >
-          <Text style={styles.playIcon}>{isPlaying ? '⏸' : '▶'}</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={(e) => { e.stopPropagation(); next(); }}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          style={styles.iconBtn}
-        >
-          <Text style={styles.icon}>⏭</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={(e) => { e.stopPropagation(); toggleLike(currentTrack.id); }}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          style={styles.iconBtn}
-        >
-          <Text style={[styles.icon, currentTrack.liked && styles.liked]}>
-            {currentTrack.liked ? '♥' : '♡'}
+          <Text style={styles.artistName} numberOfLines={1}>
+            {currentTrack.artist.name.toUpperCase()}
           </Text>
-        </TouchableOpacity>
-      </View>
+        </View>
+
+        {/* Controls */}
+        <View style={styles.controls}>
+          <TouchableOpacity
+            onPress={(e) => { e.stopPropagation(); prev(); }}
+            hitSlop={{ top: 12, bottom: 12, left: 8, right: 8 }}
+            style={styles.controlBtn}
+          >
+            <Text style={styles.controlIcon}>◂</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={(e) => { e.stopPropagation(); next(); }}
+            hitSlop={{ top: 12, bottom: 12, left: 8, right: 8 }}
+            style={styles.controlBtn}
+          >
+            <Text style={styles.controlIcon}>▸</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={(e) => { e.stopPropagation(); toggleLike(currentTrack.id); }}
+            hitSlop={{ top: 12, bottom: 12, left: 8, right: 8 }}
+            style={styles.controlBtn}
+          >
+            <Text style={[styles.controlIcon, currentTrack.liked && styles.likedIcon]}>
+              {currentTrack.liked ? '♥' : '♡'}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={(e) => { e.stopPropagation(); togglePlayPause(); }}
+            hitSlop={{ top: 12, bottom: 12, left: 8, right: 8 }}
+            style={styles.playBtn}
+          >
+            <Text style={styles.playIcon}>{isPlaying ? '⏸' : '▶'}</Text>
+          </TouchableOpacity>
+        </View>
+      </LinearGradient>
     </Pressable>
   );
 }
@@ -86,83 +89,61 @@ export default function MiniPlayer() {
 const styles = StyleSheet.create({
   container: {
     height: MINI_PLAYER_HEIGHT,
-    backgroundColor: colors.surfaceElevated,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.base,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    ...shadows.medium,
-  },
-  left: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    overflow: 'hidden',
+    gap: spacing.md,
   },
   cover: {
-    width: 48,
-    height: 48,
-    borderRadius: radius.sm,
+    width: 46,
+    height: 46,
+    borderRadius: radius.xs,
     backgroundColor: colors.surfaceVariant,
   },
   info: {
     flex: 1,
-    marginLeft: spacing.md,
+    gap: 2,
   },
-  title: {
-    ...typography.titleSmall,
-    color: colors.text,
-    marginBottom: 2,
-  },
-  subRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
-  artist: {
-    ...typography.bodySmall,
-    color: colors.textSecondary,
-    flex: 1,
-  },
-  genreBadge: {
-    paddingHorizontal: 5,
-    paddingVertical: 1,
-    borderRadius: radius.xs,
-    backgroundColor: colors.accentContainer,
-  },
-  genreText: {
-    fontSize: 9,
+  trackName: {
+    fontSize: 13,
     fontWeight: '700',
-    color: colors.accent,
-    letterSpacing: 0.5,
+    color: colors.text,
+    letterSpacing: 0.3,
+  },
+  artistName: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.55)',
+    letterSpacing: 1.2,
   },
   controls: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
-    marginLeft: spacing.sm,
+    gap: spacing.sm,
   },
-  iconBtn: {
+  controlBtn: {
     padding: spacing.xs,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  playBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.accent,
+  controlIcon: {
+    fontSize: 20,
+    color: 'rgba(255,255,255,0.85)',
   },
-  icon: {
-    fontSize: 16,
-    color: colors.textSecondary,
+  likedIcon: {
+    color: '#FF6B9D',
+  },
+  playBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 2,
   },
   playIcon: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#FFFFFF',
-  },
-  liked: {
-    color: colors.error,
   },
 });

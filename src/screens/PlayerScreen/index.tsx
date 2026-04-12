@@ -19,16 +19,16 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const COVER_SIZE = SCREEN_WIDTH - spacing.base * 2;
 
 const GENRE_ICONS: Record<string, string> = {
-  rap: '🎤',
-  trap: '🔫',
+  rap: '♪',
+  trap: '◈',
   drill: '⚡',
-  rnb: '🎶',
-  pop: '⭐',
-  afrobeat: '🌍',
-  reggaeton: '🏝',
-  soul: '💜',
-  jazz: '🎷',
-  elettronica: '🎧',
+  rnb: '◉',
+  pop: '★',
+  afrobeat: '◆',
+  reggaeton: '◇',
+  soul: '♦',
+  jazz: '♫',
+  elettronica: '◎',
 };
 
 export default function PlayerScreen() {
@@ -61,7 +61,7 @@ export default function PlayerScreen() {
   const elapsed = Math.floor(progress * currentTrack.duration);
   const remaining = currentTrack.duration - elapsed;
 
-  const loopIcon = loopMode === 'none' ? '↻' : loopMode === 'playlist' ? '🔁' : '🔂';
+  const loopLabel = loopMode === 'none' ? '↻' : loopMode === 'playlist' ? '↻' : '↺';
   const loopColor = loopMode === 'none' ? colors.textMuted : colors.accent;
 
   return (
@@ -70,11 +70,12 @@ export default function PlayerScreen() {
       <View style={styles.handle} />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+
         {/* Cover */}
         <View style={styles.coverSection}>
           <Image source={{ uri: currentTrack.cover }} style={styles.cover} />
           <View style={styles.genreOverlay}>
-            <Text style={styles.genreIcon}>{GENRE_ICONS[currentTrack.genre] ?? '🎵'}</Text>
+            <Text style={styles.genreIcon}>{GENRE_ICONS[currentTrack.genre] ?? '♪'}</Text>
             <Text style={styles.genreText}>{currentTrack.genre.toUpperCase()}</Text>
           </View>
           <View style={styles.platformOverlay}>
@@ -85,18 +86,15 @@ export default function PlayerScreen() {
         {/* Track info */}
         <View style={styles.trackInfo}>
           <View style={styles.trackInfoLeft}>
-            <Text style={styles.trackTitle} numberOfLines={1}>{currentTrack.title}</Text>
+            <Text style={styles.trackTitle} numberOfLines={1}>{currentTrack.title.toUpperCase()}</Text>
             <Text style={styles.trackArtist} numberOfLines={1}>
-              {currentTrack.artist.name}
+              {currentTrack.artist.name.toUpperCase()}
               {currentTrack.featuring?.length
-                ? ` ft. ${currentTrack.featuring.map(a => a.name).join(', ')}`
+                ? ` FT. ${currentTrack.featuring.map(a => a.name.toUpperCase()).join(', ')}`
                 : ''}
             </Text>
           </View>
-          <TouchableOpacity
-            onPress={() => toggleLike(currentTrack.id)}
-            style={styles.likeBtn}
-          >
+          <TouchableOpacity onPress={() => toggleLike(currentTrack.id)} style={styles.likeBtn}>
             <Text style={[styles.likeIcon, currentTrack.liked && styles.likedIcon]}>
               {currentTrack.liked ? '♥' : '♡'}
             </Text>
@@ -105,19 +103,17 @@ export default function PlayerScreen() {
 
         {/* Progress bar */}
         <View style={styles.progressSection}>
-          <View style={styles.progressBg}>
-            <TouchableOpacity
-              style={styles.progressBg}
-              onPress={e => {
-                const ratio = e.nativeEvent.locationX / (SCREEN_WIDTH - spacing.base * 2);
-                setProgress(Math.max(0, Math.min(1, ratio)));
-              }}
-              activeOpacity={1}
-            >
-              <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
-              <View style={[styles.progressThumb, { left: `${progress * 100}%` }]} />
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            style={styles.progressBg}
+            onPress={e => {
+              const ratio = e.nativeEvent.locationX / (SCREEN_WIDTH - spacing.base * 2);
+              setProgress(Math.max(0, Math.min(1, ratio)));
+            }}
+            activeOpacity={1}
+          >
+            <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
+            <View style={[styles.progressThumb, { left: `${progress * 100}%` as any }]} />
+          </TouchableOpacity>
           <View style={styles.progressLabels}>
             <Text style={styles.progressTime}>{formatDuration(elapsed)}</Text>
             <Text style={styles.progressTime}>−{formatDuration(remaining)}</Text>
@@ -131,7 +127,7 @@ export default function PlayerScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity onPress={prev} style={styles.prevNextBtn}>
-            <Text style={styles.prevNextIcon}>⏮</Text>
+            <Text style={styles.prevNextIcon}>◂◂</Text>
           </TouchableOpacity>
 
           <TouchableOpacity onPress={togglePlayPause} style={styles.playPauseBtn}>
@@ -139,35 +135,34 @@ export default function PlayerScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity onPress={next} style={styles.prevNextBtn}>
-            <Text style={styles.prevNextIcon}>⏭</Text>
+            <Text style={styles.prevNextIcon}>▸▸</Text>
           </TouchableOpacity>
 
           <TouchableOpacity onPress={cycleLoop} style={styles.sideControl}>
-            <Text style={[styles.sideIcon, { color: loopColor }]}>{loopIcon}</Text>
+            <Text style={[styles.sideIcon, { color: loopColor }]}>
+              {loopMode === 'track' ? '①' : loopLabel}
+            </Text>
           </TouchableOpacity>
         </View>
 
         {/* Secondary controls */}
         <View style={styles.secondaryControls}>
-          <ControlButton icon="📋" label="Successivi" onPress={() => setShowQueue(true)} />
+          <ControlButton icon="≡" label="SUCCESSIVI" onPress={() => setShowQueue(true)} />
           <ControlButton
-            icon={isLimitedToPlaylist ? '🔒' : '🔓'}
-            label="Solo playlist"
+            icon={isLimitedToPlaylist ? '⊙' : '○'}
+            label="PLAYLIST"
             active={isLimitedToPlaylist}
             onPress={toggleLimitToPlaylist}
           />
-          <ControlButton icon="⬇" label="Download" onPress={() => {}} />
-          <ControlButton icon="↑" label="Condividi" onPress={() => {}} />
-          <ControlButton icon="ℹ" label="Info" onPress={() => setShowInfo(true)} />
+          <ControlButton icon="⬇" label="DOWNLOAD" onPress={() => {}} />
+          <ControlButton icon="↑" label="CONDIVIDI" onPress={() => {}} />
+          <ControlButton icon="ⓘ" label="INFO" onPress={() => setShowInfo(true)} />
         </View>
 
         {/* Lyrics toggle */}
-        <TouchableOpacity
-          style={styles.lyricsToggle}
-          onPress={() => setShowLyrics(l => !l)}
-        >
+        <TouchableOpacity style={styles.lyricsToggle} onPress={() => setShowLyrics(l => !l)}>
           <Text style={styles.lyricsToggleText}>
-            {showLyrics ? '▴ Nascondi testo' : '▾ Mostra testo'}
+            {showLyrics ? '▴  NASCONDI TESTO' : '▾  MOSTRA TESTO'}
           </Text>
         </TouchableOpacity>
 
@@ -184,7 +179,7 @@ export default function PlayerScreen() {
           {Object.entries(GENRE_ICONS).map(([g, icon]) => (
             <TouchableOpacity key={g} style={styles.genreIconBtn}>
               <Text style={styles.genreIconText}>{icon}</Text>
-              <Text style={styles.genreIconLabel}>{g}</Text>
+              <Text style={styles.genreIconLabel}>{g.toUpperCase()}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -195,28 +190,25 @@ export default function PlayerScreen() {
         <View style={styles.queueOverlay}>
           <View style={styles.queueSheet}>
             <View style={styles.queueHandle} />
-            <Text style={styles.queueTitle}>TRACCE SUCCESSIVE ({queue.length})</Text>
+            <Text style={styles.queueTitle}>SUCCESSIVI ({queue.length})</Text>
             <ScrollView>
               {queue.map((t, i) => (
                 <View
                   key={t.id}
-                  style={[
-                    styles.queueItem,
-                    t.id === currentTrack.id && styles.queueItemActive,
-                  ]}
+                  style={[styles.queueItem, t.id === currentTrack.id && styles.queueItemActive]}
                 >
                   <Text style={styles.queueNum}>{i + 1}</Text>
                   <Image source={{ uri: t.cover }} style={styles.queueCover} />
                   <View style={styles.queueInfo}>
-                    <Text style={styles.queueTrackTitle} numberOfLines={1}>{t.title}</Text>
-                    <Text style={styles.queueTrackArtist} numberOfLines={1}>{t.artist.name}</Text>
+                    <Text style={styles.queueTrackTitle} numberOfLines={1}>{t.title.toUpperCase()}</Text>
+                    <Text style={styles.queueTrackArtist} numberOfLines={1}>{t.artist.name.toUpperCase()}</Text>
                   </View>
                   <PlatformBadge platform={t.platform} />
                 </View>
               ))}
             </ScrollView>
             <TouchableOpacity style={styles.queueCloseBtn} onPress={() => setShowQueue(false)}>
-              <Text style={styles.queueCloseText}>Chiudi</Text>
+              <Text style={styles.queueCloseText}>CHIUDI</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -228,13 +220,13 @@ export default function PlayerScreen() {
           <View style={styles.infoCard}>
             <Text style={styles.infoTitle}>INFORMAZIONI BRANO</Text>
             {[
-              ['Titolo', currentTrack.title],
-              ['Artista', currentTrack.artist.name],
-              ['Data uscita', currentTrack.releaseDate],
-              ['Genere', currentTrack.genre.toUpperCase()],
-              ['Piattaforma', currentTrack.platform.toUpperCase()],
-              ['Qualità', currentTrack.quality ?? 'N/D'],
-              ['Durata', formatDuration(currentTrack.duration)],
+              ['TITOLO', currentTrack.title],
+              ['ARTISTA', currentTrack.artist.name],
+              ['DATA USCITA', currentTrack.releaseDate],
+              ['GENERE', currentTrack.genre.toUpperCase()],
+              ['PIATTAFORMA', currentTrack.platform.toUpperCase()],
+              ['QUALITÀ', currentTrack.quality ?? 'N/D'],
+              ['DURATA', formatDuration(currentTrack.duration)],
             ].map(([label, val]) => (
               <View key={label} style={styles.infoRow}>
                 <Text style={styles.infoLabel}>{label}</Text>
@@ -268,9 +260,14 @@ function ControlButton({
 }
 
 const ctrlStyles = StyleSheet.create({
-  btn: { alignItems: 'center', gap: 2 },
+  btn: { alignItems: 'center', gap: 3 },
   icon: { fontSize: 20, color: colors.textSecondary },
-  label: { ...typography.labelSmall, color: colors.textMuted, fontSize: 9 },
+  label: {
+    fontSize: 8,
+    fontWeight: '700',
+    color: colors.textMuted,
+    letterSpacing: 1,
+  },
 });
 
 const styles = StyleSheet.create({
@@ -279,7 +276,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surfaceModal,
   },
   handle: {
-    width: 40,
+    width: 36,
     height: 4,
     borderRadius: 2,
     backgroundColor: colors.border,
@@ -311,17 +308,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: 'rgba(0,0,0,0.7)',
     borderRadius: radius.full,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
   },
-  genreIcon: { fontSize: 14 },
+  genreIcon: { fontSize: 13, color: '#FFF' },
   genreText: {
-    ...typography.labelSmall,
-    color: '#FFF',
-    letterSpacing: 1,
+    fontSize: 9,
     fontWeight: '700',
+    color: '#FFF',
+    letterSpacing: 1.5,
   },
   platformOverlay: {
     position: 'absolute',
@@ -335,18 +332,22 @@ const styles = StyleSheet.create({
   },
   trackInfoLeft: { flex: 1 },
   trackTitle: {
-    ...typography.headlineSmall,
+    fontSize: 22,
+    fontWeight: '900',
     color: colors.text,
+    letterSpacing: 0.5,
   },
   trackArtist: {
-    ...typography.bodyLarge,
+    fontSize: 12,
+    fontWeight: '600',
     color: colors.textSecondary,
-    marginTop: 2,
+    letterSpacing: 1,
+    marginTop: 3,
   },
   likeBtn: { padding: spacing.sm },
   likeIcon: { fontSize: 28, color: colors.textMuted },
-  likedIcon: { color: colors.error },
-  progressSection: { gap: spacing.xs },
+  likedIcon: { color: '#FF6B9D' },
+  progressSection: { gap: spacing.sm },
   progressBg: {
     height: 4,
     backgroundColor: colors.surfaceVariant,
@@ -360,32 +361,37 @@ const styles = StyleSheet.create({
   },
   progressThumb: {
     position: 'absolute',
-    top: -5,
-    width: 14,
-    height: 14,
-    borderRadius: 7,
+    top: -6,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
     backgroundColor: '#FFF',
-    marginLeft: -7,
+    marginLeft: -8,
     ...shadows.small,
   },
   progressLabels: {
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
-  progressTime: { ...typography.labelSmall, color: colors.textMuted },
+  progressTime: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: colors.textMuted,
+    letterSpacing: 0.5,
+  },
   mainControls: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
   sideControl: { padding: spacing.md },
-  sideIcon: { fontSize: 22, color: colors.textSecondary },
+  sideIcon: { fontSize: 24, color: colors.textSecondary },
   prevNextBtn: { padding: spacing.md },
-  prevNextIcon: { fontSize: 28, color: colors.text },
+  prevNextIcon: { fontSize: 22, color: colors.text, letterSpacing: -2 },
   playPauseBtn: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    width: 76,
+    height: 76,
+    borderRadius: 38,
     backgroundColor: colors.accent,
     justifyContent: 'center',
     alignItems: 'center',
@@ -398,24 +404,30 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderFaint,
   },
   lyricsToggle: {
     alignItems: 'center',
     paddingVertical: spacing.sm,
   },
-  lyricsToggleText: { ...typography.labelMedium, color: colors.textSecondary },
+  lyricsToggleText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: colors.textSecondary,
+    letterSpacing: 1.5,
+  },
   lyricsSection: {
     backgroundColor: colors.surface,
-    borderRadius: radius.lg,
+    borderRadius: radius.md,
     padding: spacing.base,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderFaint,
   },
   lyricsText: {
-    ...typography.bodyMedium,
+    fontSize: 13,
+    fontWeight: '400',
     color: colors.textSecondary,
-    lineHeight: 24,
+    lineHeight: 22,
   },
   genreIcons: {
     flexDirection: 'row',
@@ -426,15 +438,20 @@ const styles = StyleSheet.create({
   },
   genreIconBtn: {
     alignItems: 'center',
-    width: 60,
+    width: 58,
     gap: 2,
   },
-  genreIconText: { fontSize: 24 },
-  genreIconLabel: { ...typography.labelSmall, color: colors.textMuted, fontSize: 9 },
+  genreIconText: { fontSize: 22, color: colors.textSecondary },
+  genreIconLabel: {
+    fontSize: 7,
+    fontWeight: '700',
+    color: colors.textMuted,
+    letterSpacing: 0.8,
+  },
   // Queue
   queueOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'flex-end',
   },
   queueSheet: {
@@ -444,10 +461,10 @@ const styles = StyleSheet.create({
     maxHeight: '70%',
     padding: spacing.base,
     borderTopWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderFaint,
   },
   queueHandle: {
-    width: 40,
+    width: 36,
     height: 4,
     borderRadius: 2,
     backgroundColor: colors.border,
@@ -455,9 +472,10 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   queueTitle: {
-    ...typography.labelSmall,
-    color: colors.textMuted,
-    letterSpacing: 1.5,
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.textSecondary,
+    letterSpacing: 2,
     marginBottom: spacing.md,
   },
   queueItem: {
@@ -465,23 +483,50 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing.sm,
     gap: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderFaint,
+    borderTopWidth: 1,
+    borderTopColor: colors.borderFaint,
   },
   queueItemActive: { backgroundColor: colors.accentContainer },
-  queueNum: { ...typography.labelSmall, color: colors.textMuted, width: 20, textAlign: 'center' },
-  queueCover: { width: 40, height: 40, borderRadius: radius.xs, backgroundColor: colors.surfaceVariant },
+  queueNum: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: colors.textMuted,
+    width: 20,
+    textAlign: 'center',
+  },
+  queueCover: {
+    width: 40,
+    height: 40,
+    borderRadius: radius.xs,
+    backgroundColor: colors.surfaceVariant,
+  },
   queueInfo: { flex: 1 },
-  queueTrackTitle: { ...typography.titleSmall, color: colors.text },
-  queueTrackArtist: { ...typography.bodySmall, color: colors.textSecondary },
+  queueTrackTitle: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: colors.text,
+    letterSpacing: 0.3,
+  },
+  queueTrackArtist: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: colors.textSecondary,
+    letterSpacing: 0.5,
+    marginTop: 1,
+  },
   queueCloseBtn: {
     marginTop: spacing.md,
     paddingVertical: spacing.md,
     alignItems: 'center',
-    borderRadius: radius.md,
+    borderRadius: radius.sm,
     backgroundColor: colors.surfaceVariant,
   },
-  queueCloseText: { ...typography.labelLarge, color: colors.textSecondary },
+  queueCloseText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.textSecondary,
+    letterSpacing: 1.5,
+  },
   // Info modal
   infoOverlay: {
     flex: 1,
@@ -496,13 +541,14 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
     width: '100%',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderFaint,
     gap: spacing.xs,
   },
   infoTitle: {
-    ...typography.labelSmall,
-    color: colors.textMuted,
-    letterSpacing: 1.5,
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.textSecondary,
+    letterSpacing: 2,
     textAlign: 'center',
     marginBottom: spacing.md,
   },
@@ -510,9 +556,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingVertical: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderFaint,
+    borderTopWidth: 1,
+    borderTopColor: colors.borderFaint,
   },
-  infoLabel: { ...typography.bodySmall, color: colors.textSecondary },
-  infoValue: { ...typography.bodySmall, color: colors.text, fontWeight: '600' },
+  infoLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: colors.textSecondary,
+    letterSpacing: 1,
+  },
+  infoValue: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: colors.text,
+    letterSpacing: 0.3,
+  },
 });

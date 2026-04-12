@@ -1,33 +1,28 @@
 import React from 'react';
-import {
-  View,
-  TouchableOpacity,
-  Text,
-  StyleSheet,
-  Animated,
-} from 'react-native';
+import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, spacing, TAB_BAR_HEIGHT, typography } from '../theme';
+import { colors, spacing, TAB_BAR_HEIGHT } from '../theme';
 import { useSettingsStore } from '../store/settingsStore';
 
 type TabRoute = 'Profile' | 'Settings' | 'Home' | 'Playlist' | 'Search';
 
-const TAB_ICONS: Record<TabRoute, { active: string; inactive: string }> = {
-  Profile: { active: '●', inactive: '○' },
-  Settings: { active: '⚙', inactive: '⚙' },
-  Home: { active: '⌂', inactive: '⌂' },
-  Playlist: { active: '▣', inactive: '▢' },
-  Search: { active: '⊙', inactive: '○' },
+// Unicode outline-style icons matching the screenshot
+const TAB_ICONS: Record<TabRoute, string> = {
+  Profile: '⊙',   // person
+  Settings: '✦',  // settings/gear approximation
+  Home: '⌂',      // home
+  Playlist: '⊞',  // grid/playlist
+  Search: '⊕',    // search
 };
 
-// SVG-like text icons replacement with unicode
-const SVG_ICONS: Record<TabRoute, string> = {
-  Profile: '👤',
-  Settings: '⚙️',
-  Home: '🏠',
-  Playlist: '🎵',
-  Search: '🔍',
+// Emoji icons as fallback — matches screenshot more closely
+const EMOJI_ICONS: Record<TabRoute, string> = {
+  Profile: '○',
+  Settings: '⚙',
+  Home: '⌂',
+  Playlist: '▣',
+  Search: '◎',
 };
 
 export default function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
@@ -35,81 +30,78 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
   const accent = useSettingsStore(s => s.settings.accentColor);
 
   return (
-    <View style={[styles.container, { paddingBottom: insets.bottom }]}>
-      <View style={styles.bar}>
-        {state.routes.map((route, index) => {
-          const { options } = descriptors[route.key];
-          const isFocused = state.index === index;
-          const routeName = route.name as TabRoute;
+    <View
+      style={[
+        styles.container,
+        { paddingBottom: Math.max(insets.bottom, 6) },
+      ]}
+    >
+      {state.routes.map((route, index) => {
+        const isFocused = state.index === index;
+        const routeName = route.name as TabRoute;
 
-          const onPress = () => {
-            const event = navigation.emit({
-              type: 'tabPress',
-              target: route.key,
-              canPreventDefault: true,
-            });
-            if (!isFocused && !event.defaultPrevented) {
-              navigation.navigate(route.name);
-            }
-          };
+        const onPress = () => {
+          const event = navigation.emit({
+            type: 'tabPress',
+            target: route.key,
+            canPreventDefault: true,
+          });
+          if (!isFocused && !event.defaultPrevented) {
+            navigation.navigate(route.name);
+          }
+        };
 
-          return (
-            <TouchableOpacity
-              key={route.key}
-              onPress={onPress}
-              style={styles.tab}
-              activeOpacity={0.7}
+        return (
+          <TouchableOpacity
+            key={route.key}
+            onPress={onPress}
+            style={styles.tab}
+            activeOpacity={0.6}
+          >
+            {/* Active dot above icon */}
+            {isFocused && (
+              <View style={[styles.activeDot, { backgroundColor: accent }]} />
+            )}
+            <Text
+              style={[
+                styles.icon,
+                isFocused
+                  ? { color: '#FFFFFF', transform: [{ scale: 1.1 }] }
+                  : { color: '#444444' },
+              ]}
             >
-              <Text
-                style={[
-                  styles.icon,
-                  { color: isFocused ? accent : colors.textMuted },
-                  isFocused && styles.iconActive,
-                ]}
-              >
-                {SVG_ICONS[routeName] ?? '●'}
-              </Text>
-              {isFocused && (
-                <View style={[styles.indicator, { backgroundColor: accent }]} />
-              )}
-            </TouchableOpacity>
-          );
-        })}
-      </View>
+              {EMOJI_ICONS[routeName]}
+            </Text>
+          </TouchableOpacity>
+        );
+      })}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: colors.surface,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
-  bar: {
-    height: TAB_BAR_HEIGHT,
+    backgroundColor: '#000000',
     flexDirection: 'row',
-    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: '#1A1A1A',
+    paddingTop: 8,
   },
   tab: {
     flex: 1,
+    height: TAB_BAR_HEIGHT - 10,
     alignItems: 'center',
     justifyContent: 'center',
-    height: '100%',
     position: 'relative',
   },
-  icon: {
-    fontSize: 22,
-    lineHeight: 26,
-  },
-  iconActive: {
-    transform: [{ scale: 1.15 }],
-  },
-  indicator: {
+  activeDot: {
     position: 'absolute',
-    bottom: 6,
+    top: -2,
     width: 4,
     height: 4,
     borderRadius: 2,
+  },
+  icon: {
+    fontSize: 22,
   },
 });

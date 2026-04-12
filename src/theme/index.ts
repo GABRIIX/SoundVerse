@@ -1,38 +1,49 @@
 export const colors = {
   // Backgrounds
-  background: '#0D0D0D',
-  surface: '#1A1A1A',
-  surfaceVariant: '#252525',
-  surfaceElevated: '#2E2E2E',
-  surfaceModal: '#161616',
+  background: '#080808',
+  surface: '#111111',
+  surfaceVariant: '#191919',
+  surfaceElevated: '#202020',
+  surfaceModal: '#0C0C0C',
 
-  // Primary / Accent (default — user-configurable at runtime via settingsStore)
-  accent: '#7C4DFF',
-  accentDim: '#4A2B9B',
-  accentContainer: '#1E1040',
+  // Accent — purple
+  accent: '#7B2FBE',
+  accentLight: '#9D50E0',
+  accentDark: '#3D0E78',
+  accentContainer: '#2A0B54',
+
+  // Gradient stops for mini-player / highlights
+  gradientA: '#1B0545',
+  gradientB: '#5B1FA0',
+  gradientC: '#8B3FD8',
 
   // Text
   text: '#FFFFFF',
-  textSecondary: '#9E9E9E',
-  textMuted: '#5A5A5A',
+  textSecondary: '#666666',
+  textMuted: '#3A3A3A',
   textInverse: '#000000',
 
-  // UI
-  border: '#2A2A2A',
-  borderFaint: '#1F1F1F',
-  divider: '#222222',
-  overlay: 'rgba(0,0,0,0.65)',
+  // UI chrome
+  border: '#1E1E1E',
+  borderFaint: '#141414',
+  divider: '#1A1A1A',
+  overlay: 'rgba(0,0,0,0.75)',
 
   // Semantic
   error: '#CF6679',
-  success: '#4CAF50',
-  warning: '#FF9800',
+  success: '#22C55E',
+  warning: '#F59E0B',
 
-  // Platform brand colours
+  // Platform brand
   spotify: '#1DB954',
   youtube: '#FF0000',
   soundcloud: '#FF5500',
   appleMusic: '#FC3C44',
+};
+
+export const gradients = {
+  miniPlayer: ['#1B0545', '#5B1FA0', '#8B3FD8'] as const,
+  accent: ['#3D0E78', '#7B2FBE'] as const,
 };
 
 export const spacing = {
@@ -56,8 +67,50 @@ export const radius = {
 };
 
 export const typography = {
-  displayLarge: { fontSize: 57, lineHeight: 64, letterSpacing: -0.25, fontWeight: '400' as const },
-  displayMedium: { fontSize: 45, lineHeight: 52, letterSpacing: 0, fontWeight: '400' as const },
+  // Screen / section titles
+  screenTitle: {
+    fontSize: 26,
+    fontWeight: '900' as const,
+    letterSpacing: 1.5,
+    color: '#FFFFFF',
+  },
+  sectionLabel: {
+    fontSize: 10,
+    fontWeight: '600' as const,
+    letterSpacing: 2,
+    color: '#555555',
+    textTransform: 'uppercase' as const,
+  },
+
+  // Row typography (settings / profile inline rows)
+  rowLabel: {
+    fontSize: 19,
+    fontWeight: '900' as const,
+    letterSpacing: 0.5,
+    color: '#FFFFFF',
+  },
+  rowValue: {
+    fontSize: 14,
+    fontWeight: '400' as const,
+    letterSpacing: 0.3,
+    color: '#666666',
+  },
+
+  // List items
+  listTitle: {
+    fontSize: 15,
+    fontWeight: '900' as const,
+    letterSpacing: 1,
+    color: '#FFFFFF',
+  },
+  listSub: {
+    fontSize: 11,
+    fontWeight: '400' as const,
+    letterSpacing: 0.5,
+    color: '#555555',
+  },
+
+  // Generic
   headlineLarge: { fontSize: 32, lineHeight: 40, letterSpacing: 0, fontWeight: '700' as const },
   headlineMedium: { fontSize: 28, lineHeight: 36, letterSpacing: 0, fontWeight: '700' as const },
   headlineSmall: { fontSize: 24, lineHeight: 32, letterSpacing: 0, fontWeight: '600' as const },
@@ -72,28 +125,28 @@ export const typography = {
   labelSmall: { fontSize: 11, lineHeight: 16, letterSpacing: 0.5, fontWeight: '500' as const },
 };
 
-export const TAB_BAR_HEIGHT = 65;
-export const MINI_PLAYER_HEIGHT = 72;
+export const TAB_BAR_HEIGHT = 62;
+export const MINI_PLAYER_HEIGHT = 68;
 
 export const shadows = {
   small: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.4,
     shadowRadius: 4,
     elevation: 3,
   },
   medium: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
+    shadowOpacity: 0.5,
     shadowRadius: 8,
     elevation: 6,
   },
   large: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.5,
+    shadowOpacity: 0.6,
     shadowRadius: 16,
     elevation: 12,
   },

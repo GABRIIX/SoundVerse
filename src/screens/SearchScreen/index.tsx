@@ -11,10 +11,9 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TRACKS, ALBUMS, ARTISTS } from '../../data/mockData';
 import TrackCard from '../../components/TrackCard';
-import PlatformBadge from '../../components/PlatformBadge';
 import { usePlayerStore } from '../../store/playerStore';
 import { colors, spacing, radius, typography } from '../../theme';
-import { Track, Album, Artist } from '../../types';
+import ScreenHeader from '../../components/ScreenHeader';
 
 type SearchMode = 'search' | 'bot';
 
@@ -39,18 +38,11 @@ export default function SearchScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>CERCA</Text>
-        <TouchableOpacity
-          style={styles.botToggle}
-          onPress={() => setMode(m => (m === 'search' ? 'bot' : 'search'))}
-        >
-          <Text style={[styles.botToggleText, mode === 'bot' && { color: colors.accent }]}>
-            {mode === 'bot' ? '🤖 BOT' : '🔍 CERCA'}
-          </Text>
-        </TouchableOpacity>
-      </View>
+      <ScreenHeader
+        title="CERCA"
+        rightLabel={mode === 'bot' ? 'RICERCA' : 'VERSE AI'}
+        onRightPress={() => setMode(m => (m === 'search' ? 'bot' : 'search'))}
+      />
 
       {mode === 'bot' ? (
         <VerseBotInline />
@@ -58,17 +50,18 @@ export default function SearchScreen() {
         <>
           {/* Search bar */}
           <View style={styles.searchBar}>
-            <Text style={styles.searchIcon}>🔍</Text>
+            <Text style={styles.searchIcon}>◎</Text>
             <TextInput
               style={styles.searchInput}
-              placeholder="Cerca artisti, brani, album..."
+              placeholder="ARTISTI, BRANI, ALBUM..."
               placeholderTextColor={colors.textMuted}
               value={query}
               onChangeText={setQuery}
               returnKeyType="search"
+              autoCapitalize="none"
             />
             {query.length > 0 && (
-              <TouchableOpacity onPress={() => setQuery('')}>
+              <TouchableOpacity onPress={() => setQuery('')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                 <Text style={styles.clearBtn}>✕</Text>
               </TouchableOpacity>
             )}
@@ -98,10 +91,10 @@ export default function SearchScreen() {
             {filteredArtists.length > 0 && (
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>ARTISTI</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.artistChips}>
                   {filteredArtists.map(a => (
                     <TouchableOpacity key={a.id} style={styles.artistChip}>
-                      <Text style={styles.artistChipText}>{a.name}</Text>
+                      <Text style={styles.artistChipText}>{a.name.toUpperCase()}</Text>
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
@@ -125,7 +118,7 @@ export default function SearchScreen() {
 
             {filteredTracks.length === 0 && filteredArtists.length === 0 && query.length > 0 && (
               <View style={styles.empty}>
-                <Text style={styles.emptyText}>Nessun risultato per "{query}"</Text>
+                <Text style={styles.emptyText}>NESSUN RISULTATO{'\n'}PER "{query.toUpperCase()}"</Text>
               </View>
             )}
           </ScrollView>
@@ -136,70 +129,132 @@ export default function SearchScreen() {
 }
 
 function VerseBotInline() {
+  const [messages, setMessages] = useState([
+    { id: 'm0', from: 'bot', text: 'Ciao! Sono VERSE. Dimmi cosa cerchi.' },
+  ]);
+  const [input, setInput] = useState('');
+
+  const send = () => {
+    const txt = input.trim();
+    if (!txt) return;
+    const userMsg = { id: `u_${Date.now()}`, from: 'user', text: txt };
+    const botReply = { id: `b_${Date.now()}`, from: 'bot', text: `Cerco "${txt}"… Funzionalità AI in arrivo!` };
+    setMessages(prev => [...prev, userMsg, botReply]);
+    setInput('');
+  };
+
   return (
-    <View style={styles.botPlaceholder}>
-      <Text style={styles.botEmoji}>🤖</Text>
-      <Text style={styles.botTitle}>VERSE AI</Text>
-      <Text style={styles.botSub}>
-        Chiedi di cercare brani, gestire la libreria o informazioni sugli artisti.
-      </Text>
-      <TouchableOpacity style={styles.botOpenBtn}>
-        <Text style={styles.botOpenText}>Apri VERSE/BOT</Text>
-      </TouchableOpacity>
+    <View style={botStyles.container}>
+      <ScrollView contentContainerStyle={botStyles.messages} showsVerticalScrollIndicator={false}>
+        {messages.map(m => (
+          <View key={m.id} style={[botStyles.bubble, m.from === 'user' ? botStyles.userBubble : botStyles.botBubble]}>
+            <Text style={[botStyles.bubbleText, m.from === 'user' && botStyles.userText]}>{m.text}</Text>
+          </View>
+        ))}
+      </ScrollView>
+      <View style={botStyles.inputRow}>
+        <TextInput
+          style={botStyles.input}
+          placeholder="Chiedi a VERSE..."
+          placeholderTextColor={colors.textMuted}
+          value={input}
+          onChangeText={setInput}
+          onSubmitEditing={send}
+          returnKeyType="send"
+        />
+        <TouchableOpacity onPress={send} style={botStyles.sendBtn}>
+          <Text style={botStyles.sendText}>›</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
 
+const botStyles = StyleSheet.create({
+  container: { flex: 1 },
+  messages: { padding: spacing.base, gap: spacing.sm, paddingBottom: spacing.xl },
+  bubble: {
+    maxWidth: '82%',
+    padding: spacing.md,
+    borderRadius: radius.lg,
+    marginVertical: 2,
+  },
+  botBubble: {
+    backgroundColor: colors.surfaceVariant,
+    alignSelf: 'flex-start',
+    borderBottomLeftRadius: radius.xs,
+  },
+  userBubble: {
+    backgroundColor: colors.accent,
+    alignSelf: 'flex-end',
+    borderBottomRightRadius: radius.xs,
+  },
+  bubbleText: { ...typography.bodyMedium, color: colors.text },
+  userText: { color: '#FFF' },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing.md,
+    gap: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: colors.borderFaint,
+    backgroundColor: colors.background,
+  },
+  input: {
+    flex: 1,
+    backgroundColor: colors.surfaceVariant,
+    borderRadius: radius.full,
+    paddingHorizontal: spacing.base,
+    paddingVertical: spacing.sm,
+    color: colors.text,
+    fontSize: 14,
+  },
+  sendBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.accent,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  sendText: { color: '#FFF', fontSize: 24, lineHeight: 28 },
+});
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: spacing.base,
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.sm,
-  },
-  headerTitle: {
-    ...typography.headlineSmall,
-    color: colors.text,
-    letterSpacing: 2,
-  },
-  botToggle: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: radius.full,
-    backgroundColor: colors.surfaceVariant,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  botToggleText: {
-    ...typography.labelMedium,
-    color: colors.textSecondary,
-  },
+
+  // Search bar
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
     marginHorizontal: spacing.base,
     marginBottom: spacing.sm,
-    backgroundColor: colors.surfaceVariant,
-    borderRadius: radius.lg,
+    backgroundColor: colors.surface,
+    borderRadius: radius.sm,
     paddingHorizontal: spacing.md,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderFaint,
   },
-  searchIcon: { fontSize: 16, marginRight: spacing.sm },
+  searchIcon: {
+    fontSize: 16,
+    color: colors.textMuted,
+    marginRight: spacing.sm,
+  },
   searchInput: {
     flex: 1,
     paddingVertical: spacing.md,
     color: colors.text,
-    ...typography.bodyLarge,
+    fontSize: 14,
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
   clearBtn: {
     color: colors.textMuted,
-    fontSize: 14,
+    fontSize: 13,
     padding: spacing.xs,
   },
+
+  // Genre chips
   genreChips: {
     paddingHorizontal: spacing.base,
     paddingBottom: spacing.sm,
@@ -208,25 +263,26 @@ const styles = StyleSheet.create({
   },
   genreChip: {
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
+    paddingVertical: 5,
     borderRadius: radius.full,
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: 'transparent',
+    borderColor: colors.borderFaint,
   },
   genreChipActive: {
     backgroundColor: colors.accentContainer,
     borderColor: colors.accent,
   },
   genreChipText: {
-    ...typography.labelSmall,
+    fontSize: 9,
+    fontWeight: '700',
     color: colors.textSecondary,
-    letterSpacing: 0.8,
+    letterSpacing: 1,
   },
   genreChipTextActive: {
     color: colors.accent,
-    fontWeight: '700',
   },
+
+  // Results
   results: {
     paddingBottom: spacing.xxxl,
   },
@@ -234,64 +290,48 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   sectionTitle: {
-    ...typography.labelSmall,
-    color: colors.textMuted,
-    letterSpacing: 1.5,
+    fontSize: 9,
+    fontWeight: '600',
+    color: colors.textSecondary,
+    letterSpacing: 2,
     paddingHorizontal: spacing.base,
-    marginBottom: spacing.sm,
+    paddingVertical: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: colors.borderFaint,
+  },
+
+  // Artist chips
+  artistChips: {
+    paddingHorizontal: spacing.base,
+    gap: spacing.sm,
+    flexDirection: 'row',
   },
   artistChip: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    borderRadius: radius.full,
-    backgroundColor: colors.surfaceVariant,
-    marginLeft: spacing.base,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderFaint,
+    borderRadius: radius.sm,
   },
   artistChipText: {
-    ...typography.labelMedium,
+    fontSize: 11,
+    fontWeight: '700',
     color: colors.text,
+    letterSpacing: 0.5,
   },
+
+  // Empty state
   empty: {
     padding: spacing.xxxl,
     alignItems: 'center',
   },
   emptyText: {
-    ...typography.bodyMedium,
+    fontSize: 13,
+    fontWeight: '900',
     color: colors.textMuted,
     textAlign: 'center',
-  },
-  // Bot inline
-  botPlaceholder: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: spacing.xxxl,
-    gap: spacing.md,
-  },
-  botEmoji: { fontSize: 56, lineHeight: 64 },
-  botTitle: {
-    ...typography.headlineMedium,
-    color: colors.text,
-    letterSpacing: 3,
-  },
-  botSub: {
-    ...typography.bodyMedium,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-  botOpenBtn: {
-    marginTop: spacing.lg,
-    paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.md,
-    borderRadius: radius.full,
-    backgroundColor: colors.accent,
-  },
-  botOpenText: {
-    ...typography.labelLarge,
-    color: '#FFF',
-    fontWeight: '700',
+    letterSpacing: 1,
+    lineHeight: 20,
   },
 });

@@ -30,8 +30,6 @@ export default function NovitaScreen() {
   const [sort, setSort] = useState<SortCriteria>('addedDesc');
   const { play } = usePlayerStore();
 
-  const data = activeTab === 'canzoni' ? TRACKS : activeTab === 'album' ? ALBUMS : PLAYLISTS;
-
   const renderTrackCell = ({ item }: { item: typeof TRACKS[0] }) => (
     <TouchableOpacity style={styles.cell} onPress={() => play(item)} activeOpacity={0.75}>
       <View style={styles.coverWrap}>
@@ -40,8 +38,8 @@ export default function NovitaScreen() {
           <PlatformBadge platform={item.platform} size="sm" />
         </View>
       </View>
-      <Text style={styles.cellArtist} numberOfLines={1}>{item.artist.name}</Text>
-      <Text style={styles.cellTitle} numberOfLines={1}>{item.title}</Text>
+      <Text style={styles.cellArtist} numberOfLines={1}>{item.artist.name.toUpperCase()}</Text>
+      <Text style={styles.cellTitle} numberOfLines={1}>{item.title.toUpperCase()}</Text>
     </TouchableOpacity>
   );
 
@@ -53,8 +51,8 @@ export default function NovitaScreen() {
           <PlatformBadge platform={item.platform} size="sm" />
         </View>
       </View>
-      <Text style={styles.cellArtist} numberOfLines={1}>{item.artist.name}</Text>
-      <Text style={styles.cellTitle} numberOfLines={1}>{item.title}</Text>
+      <Text style={styles.cellArtist} numberOfLines={1}>{item.artist.name.toUpperCase()}</Text>
+      <Text style={styles.cellTitle} numberOfLines={1}>{item.title.toUpperCase()}</Text>
     </TouchableOpacity>
   );
 
@@ -67,16 +65,21 @@ export default function NovitaScreen() {
         </View>
       </View>
       <Text style={styles.cellArtist} numberOfLines={1} />
-      <Text style={styles.cellTitle} numberOfLines={1}>{item.name}</Text>
+      <Text style={styles.cellTitle} numberOfLines={1}>{item.name.toUpperCase()}</Text>
     </TouchableOpacity>
   );
+
+  const data = activeTab === 'canzoni' ? TRACKS : activeTab === 'album' ? ALBUMS : PLAYLISTS;
 
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>NOVITÀ</Text>
-        <Text style={styles.headerSub}>/ {TABS.find(t => t.key === activeTab)?.label}</Text>
+        <View style={styles.headerLeft}>
+          <View style={styles.bullet} />
+          <Text style={styles.headerTitle}>NOVITÀ</Text>
+        </View>
+        <Text style={styles.headerSub}>{TABS.find(t => t.key === activeTab)?.label}</Text>
       </View>
 
       {/* Tabs */}
@@ -85,13 +88,12 @@ export default function NovitaScreen() {
           <TouchableOpacity
             key={tab.key}
             onPress={() => setActiveTab(tab.key)}
-            style={[styles.tabBtn, activeTab === tab.key && styles.tabBtnActive]}
+            style={styles.tabBtn}
           >
-            <Text
-              style={[styles.tabLabel, activeTab === tab.key && styles.tabLabelActive]}
-            >
+            <Text style={[styles.tabLabel, activeTab === tab.key && styles.tabLabelActive]}>
               {tab.label}
             </Text>
+            {activeTab === tab.key && <View style={styles.tabUnderline} />}
           </TouchableOpacity>
         ))}
       </View>
@@ -141,46 +143,61 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    alignItems: 'baseline',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: spacing.base,
     paddingTop: spacing.lg,
-    paddingBottom: spacing.sm,
+    paddingBottom: spacing.md,
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  bullet: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: colors.text,
   },
   headerTitle: {
-    ...typography.headlineSmall,
+    fontSize: 22,
+    fontWeight: '900',
     color: colors.text,
-    letterSpacing: 2,
+    letterSpacing: 1.5,
   },
   headerSub: {
-    ...typography.titleMedium,
+    fontSize: 11,
+    fontWeight: '600',
     color: colors.textSecondary,
-    marginLeft: spacing.sm,
+    letterSpacing: 1.5,
   },
   tabRow: {
     flexDirection: 'row',
     paddingHorizontal: spacing.base,
-    gap: spacing.sm,
-    marginBottom: spacing.xs,
+    gap: spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderFaint,
   },
   tabBtn: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs + 2,
-    borderRadius: radius.full,
-    borderWidth: 1,
-    borderColor: 'transparent',
-  },
-  tabBtnActive: {
-    borderColor: colors.accent,
-    backgroundColor: colors.accentContainer,
+    paddingBottom: spacing.sm,
+    paddingTop: spacing.xs,
+    position: 'relative',
   },
   tabLabel: {
-    ...typography.labelMedium,
-    color: colors.textSecondary,
-    letterSpacing: 1,
-  },
-  tabLabelActive: {
-    color: colors.accent,
+    fontSize: 11,
     fontWeight: '700',
+    color: colors.textSecondary,
+    letterSpacing: 1.5,
+  },
+  tabLabelActive: { color: colors.text },
+  tabUnderline: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 2,
+    backgroundColor: colors.accent,
   },
   grid: {
     padding: spacing.base,
@@ -197,7 +214,7 @@ const styles = StyleSheet.create({
   cellCover: {
     width: CELL_SIZE,
     height: CELL_SIZE,
-    borderRadius: radius.sm,
+    borderRadius: radius.xs,
     backgroundColor: colors.surfaceVariant,
   },
   badgeOverlay: {
@@ -220,13 +237,16 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   cellArtist: {
-    ...typography.labelSmall,
-    color: colors.textMuted,
+    fontSize: 9,
+    fontWeight: '600',
+    color: colors.textSecondary,
+    letterSpacing: 0.5,
     marginTop: 4,
   },
   cellTitle: {
-    ...typography.labelSmall,
+    fontSize: 9,
+    fontWeight: '900',
     color: colors.text,
-    fontWeight: '600',
+    letterSpacing: 0.3,
   },
 });

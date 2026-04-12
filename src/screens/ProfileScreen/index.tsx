@@ -7,39 +7,48 @@ import {
   ScrollView,
   TextInput,
   StyleSheet,
-  FlatList,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { CURRENT_USER, NEWS_ARTICLES } from '../../data/mockData';
+import { CURRENT_USER, NEWS_ARTICLES, formatNumber } from '../../data/mockData';
 import { colors, spacing, radius, typography } from '../../theme';
+import ScreenHeader from '../../components/ScreenHeader';
 
 type ProfileTab = 'profilo' | 'amici' | 'notizie' | 'giochi' | 'bot';
 
-const TABS: { key: ProfileTab; label: string; icon: string }[] = [
-  { key: 'profilo', label: 'Profilo', icon: '👤' },
-  { key: 'amici', label: 'Amici', icon: '💬' },
-  { key: 'notizie', label: 'Notizie', icon: '📰' },
-  { key: 'giochi', label: 'Giochi', icon: '🎮' },
-  { key: 'bot', label: 'VERSE AI', icon: '🤖' },
+const TABS: { key: ProfileTab; label: string }[] = [
+  { key: 'profilo', label: 'PROFILO' },
+  { key: 'amici', label: 'AMICI' },
+  { key: 'notizie', label: 'NOTIZIE' },
+  { key: 'giochi', label: 'GIOCHI' },
+  { key: 'bot', label: 'VERSE AI' },
 ];
 
-const PLATFORM_ICONS: Record<string, string> = {
-  spotify: '🟢',
-  youtube: '🔴',
-  soundcloud: '🟠',
-  appleMusic: '🍎',
-};
+// ─── Row helpers (same style as Settings) ────────────────────────────────────
+
+function InfoRow({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={styles.row}>
+      <Text style={styles.rowLabel}>{label}</Text>
+      <Text style={styles.rowValue}>{value}</Text>
+    </View>
+  );
+}
+
+function SectionHeader({ title }: { title: string }) {
+  return <Text style={styles.sectionHeader}>{title}</Text>;
+}
+
+// ─── Main screen ──────────────────────────────────────────────────────────────
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<ProfileTab>('profilo');
   const [user, setUser] = useState(CURRENT_USER);
-  const [editingNick, setEditingNick] = useState(false);
-  const [editingName, setEditingName] = useState(false);
-  const [editingEmail, setEditingEmail] = useState(false);
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
+      <ScreenHeader title="PROFILO" />
+
       {/* Tab bar */}
       <ScrollView
         horizontal
@@ -50,13 +59,13 @@ export default function ProfileScreen() {
         {TABS.map(tab => (
           <TouchableOpacity
             key={tab.key}
-            style={[styles.tabBtn, activeTab === tab.key && styles.tabBtnActive]}
+            style={styles.tabBtn}
             onPress={() => setActiveTab(tab.key)}
           >
-            <Text style={styles.tabIcon}>{tab.icon}</Text>
             <Text style={[styles.tabLabel, activeTab === tab.key && styles.tabLabelActive]}>
               {tab.label}
             </Text>
+            {activeTab === tab.key && <View style={styles.tabUnderline} />}
           </TouchableOpacity>
         ))}
       </ScrollView>
@@ -64,103 +73,109 @@ export default function ProfileScreen() {
       {/* Content */}
       {activeTab === 'profilo' && (
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-          {/* Avatar */}
-          <View style={styles.avatarSection}>
+          {/* Avatar + nickname hero */}
+          <View style={styles.hero}>
             <TouchableOpacity style={styles.avatarWrap}>
               <Image source={{ uri: user.avatar }} style={styles.avatar} />
               <View style={styles.avatarEdit}>
-                <Text style={styles.avatarEditIcon}>✏️</Text>
+                <Text style={styles.avatarEditIcon}>✎</Text>
               </View>
             </TouchableOpacity>
-          </View>
-
-          {/* Editable fields */}
-          <View style={styles.fieldGroup}>
-            <EditableField
-              label="Nickname"
-              value={user.nickname}
-              isEditing={editingNick}
-              onEdit={() => setEditingNick(true)}
-              onSubmit={(v) => { setUser(u => ({ ...u, nickname: v })); setEditingNick(false); }}
-            />
-            <EditableField
-              label="Nome reale"
-              value={user.realName}
-              isEditing={editingName}
-              onEdit={() => setEditingName(true)}
-              onSubmit={(v) => { setUser(u => ({ ...u, realName: v })); setEditingName(false); }}
-            />
-            <EditableField
-              label="Email"
-              value={user.email}
-              isEditing={editingEmail}
-              onEdit={() => setEditingEmail(true)}
-              onSubmit={(v) => { setUser(u => ({ ...u, email: v })); setEditingEmail(false); }}
-              keyboardType="email-address"
-            />
-          </View>
-
-          {/* Piattaforme collegate */}
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>PIATTAFORME COLLEGATE</Text>
-            {(['spotify', 'youtube', 'soundcloud', 'appleMusic'] as const).map(p => (
-              <View key={p} style={styles.platformRow}>
-                <Text style={styles.platformIcon}>{PLATFORM_ICONS[p]}</Text>
-                <Text style={styles.platformName}>{p.toUpperCase()}</Text>
-                <View
-                  style={[
-                    styles.platformStatus,
-                    user.connectedPlatforms[p] ? styles.statusConnected : styles.statusDisconnected,
-                  ]}
-                >
-                  <Text style={styles.platformStatusText}>
-                    {user.connectedPlatforms[p] ? 'CONNESSO' : 'CONNETTI'}
-                  </Text>
-                </View>
+            <View style={styles.heroInfo}>
+              <Text style={styles.nickname}>{user.nickname.toUpperCase()}</Text>
+              <Text style={styles.realName}>{user.realName}</Text>
+            </View>
+            <View style={styles.statsRow}>
+              <View style={styles.statItem}>
+                <Text style={styles.statValue}>{formatNumber(user.followersCount)}</Text>
+                <Text style={styles.statLabel}>FOLLOWER</Text>
               </View>
-            ))}
+              <View style={styles.statDivider} />
+              <View style={styles.statItem}>
+                <Text style={styles.statValue}>{formatNumber(user.totalPlays)}</Text>
+                <Text style={styles.statLabel}>RIPRODUZIONI</Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statItem}>
+                <Text style={styles.statValue}>{formatNumber(user.totalLikes)}</Text>
+                <Text style={styles.statLabel}>MI PIACE</Text>
+              </View>
+            </View>
           </View>
+
+          {/* Dati account */}
+          <SectionHeader title="DATI ACCOUNT" />
+          <EditableRow
+            label="NICKNAME"
+            value={user.nickname.toUpperCase()}
+            onSubmit={v => setUser(u => ({ ...u, nickname: v }))}
+          />
+          <EditableRow
+            label="NOME REALE"
+            value={user.realName}
+            onSubmit={v => setUser(u => ({ ...u, realName: v }))}
+          />
+          <EditableRow
+            label="EMAIL"
+            value={user.email}
+            onSubmit={v => setUser(u => ({ ...u, email: v }))}
+            keyboardType="email-address"
+          />
+
+          {/* Piattaforme */}
+          <SectionHeader title="PIATTAFORME COLLEGATE" />
+          {(['spotify', 'youtube', 'soundcloud', 'appleMusic'] as const).map(p => (
+            <View key={p} style={styles.row}>
+              <Text style={styles.rowLabel}>{p.toUpperCase()}</Text>
+              <Text style={[
+                styles.rowValue,
+                user.connectedPlatforms[p] && { color: colors.success },
+              ]}>
+                {user.connectedPlatforms[p] ? 'CONNESSO' : 'CONNETTI'}
+              </Text>
+            </View>
+          ))}
+
+          <TouchableOpacity style={[styles.row, { marginBottom: spacing.xxxl }]}>
+            <Text style={[styles.rowLabel, { color: colors.error }]}>DISCONNETTI ACCOUNT</Text>
+          </TouchableOpacity>
         </ScrollView>
       )}
 
       {activeTab === 'amici' && (
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-          <Text style={styles.sectionHeader}>AMICI ({user.friends.length})</Text>
+          <SectionHeader title={`AMICI (${user.friends.length})`} />
           {user.friends.map(friend => (
-            <View key={friend.id} style={styles.friendRow}>
+            <View key={friend.id} style={styles.row}>
               <Image source={{ uri: friend.avatar }} style={styles.friendAvatar} />
               <View style={styles.friendInfo}>
-                <Text style={styles.friendNick}>{friend.nickname}</Text>
-                <Text style={styles.friendName}>{friend.realName}</Text>
+                <Text style={styles.rowLabel}>{friend.nickname.toUpperCase()}</Text>
+                <Text style={styles.rowValue}>{friend.realName}</Text>
               </View>
               <TouchableOpacity style={styles.chatBtn}>
-                <Text style={styles.chatBtnText}>💬</Text>
+                <Text style={styles.chatBtnText}>›</Text>
               </TouchableOpacity>
             </View>
           ))}
           <TouchableOpacity style={styles.addFriendBtn}>
-            <Text style={styles.addFriendText}>＋ Cerca amici</Text>
+            <Text style={styles.addFriendText}>+ CERCA AMICI</Text>
           </TouchableOpacity>
         </ScrollView>
       )}
 
       {activeTab === 'notizie' && (
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-          <Text style={styles.sectionHeader}>NOTIZIE MUSICALI</Text>
+          <SectionHeader title="NOTIZIE MUSICALI" />
           {NEWS_ARTICLES.map(article => (
-            <View key={article.id} style={styles.articleCard}>
-              {article.imageUrl && (
-                <Image source={{ uri: article.imageUrl }} style={styles.articleImage} />
-              )}
+            <TouchableOpacity key={article.id} style={styles.articleRow} activeOpacity={0.75}>
               <View style={styles.articleBody}>
-                <Text style={styles.articleSource}>{article.source} · {article.publishedAt}</Text>
-                <Text style={styles.articleTitle}>{article.title}</Text>
-                <Text style={styles.articleSummary}>{article.summary}</Text>
-                <TouchableOpacity>
-                  <Text style={styles.articleReadMore}>Leggi di più ›</Text>
-                </TouchableOpacity>
+                <Text style={styles.articleSource}>{article.source.toUpperCase()}</Text>
+                <Text style={styles.articleTitle} numberOfLines={2}>{article.title}</Text>
               </View>
-            </View>
+              {article.imageUrl && (
+                <Image source={{ uri: article.imageUrl }} style={styles.articleThumb} />
+              )}
+            </TouchableOpacity>
           ))}
         </ScrollView>
       )}
@@ -172,96 +187,74 @@ export default function ProfileScreen() {
   );
 }
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
+// ─── Editable row ─────────────────────────────────────────────────────────────
 
-interface EditableFieldProps {
+function EditableRow({
+  label,
+  value,
+  onSubmit,
+  keyboardType = 'default',
+}: {
   label: string;
   value: string;
-  isEditing: boolean;
-  onEdit: () => void;
-  onSubmit: (value: string) => void;
+  onSubmit: (v: string) => void;
   keyboardType?: 'default' | 'email-address';
-}
-
-function EditableField({ label, value, isEditing, onEdit, onSubmit, keyboardType = 'default' }: EditableFieldProps) {
+}) {
+  const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
-  return (
-    <View style={efStyles.row}>
-      <Text style={efStyles.label}>{label}</Text>
-      {isEditing ? (
+
+  if (editing) {
+    return (
+      <View style={[styles.row, { backgroundColor: colors.surface }]}>
+        <Text style={styles.rowLabel}>{label}</Text>
         <TextInput
-          style={efStyles.input}
+          style={styles.editInput}
           value={draft}
           onChangeText={setDraft}
-          onBlur={() => onSubmit(draft)}
-          onSubmitEditing={() => onSubmit(draft)}
+          onBlur={() => { onSubmit(draft); setEditing(false); }}
+          onSubmitEditing={() => { onSubmit(draft); setEditing(false); }}
           autoFocus
           keyboardType={keyboardType}
           returnKeyType="done"
+          placeholderTextColor={colors.textMuted}
         />
-      ) : (
-        <TouchableOpacity style={efStyles.valueRow} onPress={onEdit}>
-          <Text style={efStyles.value}>{value}</Text>
-          <Text style={efStyles.editIcon}>✏️</Text>
-        </TouchableOpacity>
-      )}
-    </View>
+      </View>
+    );
+  }
+
+  return (
+    <TouchableOpacity style={styles.row} onPress={() => setEditing(true)} activeOpacity={0.6}>
+      <Text style={styles.rowLabel}>{label}</Text>
+      <Text style={styles.rowValue}>{value}</Text>
+    </TouchableOpacity>
   );
 }
 
-const efStyles = StyleSheet.create({
-  row: {
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderFaint,
-  },
-  label: {
-    ...typography.labelSmall,
-    color: colors.textMuted,
-    letterSpacing: 1,
-    marginBottom: 4,
-  },
-  valueRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  value: {
-    ...typography.bodyLarge,
-    color: colors.text,
-  },
-  editIcon: { fontSize: 14 },
-  input: {
-    ...typography.bodyLarge,
-    color: colors.text,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.accent,
-    paddingVertical: 2,
-  },
-});
+// ─── Games section ────────────────────────────────────────────────────────────
 
 function GamesSection() {
   const GAMES = [
-    { id: 'g1', title: 'Indovina la canzone', desc: 'Ascolta l\'intro e indovina il brano', icon: '🎵' },
-    { id: 'g2', title: 'Quale è più famosa?', desc: 'Confronta due tracce per stream', icon: '📊' },
-    { id: 'g3', title: 'Indovina il feat', desc: 'Chi è il featuring dal solo audio?', icon: '🎤' },
+    { id: 'g1', title: 'INDOVINA LA CANZONE', desc: 'Ascolta l\'intro e indovina il brano', icon: '♪' },
+    { id: 'g2', title: 'QUALE È PIÙ FAMOSA?', desc: 'Confronta due tracce per stream', icon: '◉' },
+    { id: 'g3', title: 'INDOVINA IL FEAT', desc: 'Chi è il featuring dal solo audio?', icon: '◎' },
   ];
   return (
-    <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <ScrollView contentContainerStyle={{ paddingBottom: spacing.xxxl }} showsVerticalScrollIndicator={false}>
       <Text style={styles.sectionHeader}>GIOCHI MUSICALI</Text>
       {GAMES.map(g => (
-        <TouchableOpacity key={g.id} style={styles.gameCard} activeOpacity={0.75}>
-          <Text style={styles.gameIcon}>{g.icon}</Text>
-          <View style={styles.gameInfo}>
-            <Text style={styles.gameTitle}>{g.title}</Text>
-            <Text style={styles.gameDesc}>{g.desc}</Text>
+        <TouchableOpacity key={g.id} style={styles.row} activeOpacity={0.75}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.rowLabel}>{g.title}</Text>
+            <Text style={[styles.rowValue, { marginTop: 2 }]}>{g.desc}</Text>
           </View>
-          <Text style={styles.gameArrow}>›</Text>
+          <Text style={styles.rowValue}>{g.icon}</Text>
         </TouchableOpacity>
       ))}
     </ScrollView>
   );
 }
+
+// ─── VERSE BOT ────────────────────────────────────────────────────────────────
 
 function VerseBotScreen() {
   const [messages, setMessages] = useState([
@@ -290,7 +283,7 @@ function VerseBotScreen() {
       <View style={botStyles.inputRow}>
         <TextInput
           style={botStyles.input}
-          placeholder="Scrivi un messaggio..."
+          placeholder="Scrivi a VERSE..."
           placeholderTextColor={colors.textMuted}
           value={input}
           onChangeText={setInput}
@@ -332,8 +325,8 @@ const botStyles = StyleSheet.create({
     padding: spacing.md,
     gap: spacing.sm,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
-    backgroundColor: colors.surface,
+    borderTopColor: colors.borderFaint,
+    backgroundColor: colors.background,
   },
   input: {
     flex: 1,
@@ -342,7 +335,8 @@ const botStyles = StyleSheet.create({
     paddingHorizontal: spacing.base,
     paddingVertical: spacing.sm,
     color: colors.text,
-    ...typography.bodyMedium,
+    fontSize: 14,
+    letterSpacing: 0.3,
   },
   sendBtn: {
     width: 40,
@@ -352,34 +346,97 @@ const botStyles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  sendText: { color: '#FFF', fontSize: 22, lineHeight: 28 },
+  sendText: { color: '#FFF', fontSize: 24, lineHeight: 28 },
 });
+
+// ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  tabScroll: { flexGrow: 0, borderBottomWidth: 1, borderBottomColor: colors.border },
+
+  // Tabs
+  tabScroll: { flexGrow: 0 },
   tabContent: {
     paddingHorizontal: spacing.sm,
     flexDirection: 'row',
     alignItems: 'center',
   },
   tabBtn: {
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.sm,
+    paddingTop: spacing.xs,
+    position: 'relative',
+  },
+  tabLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1.5,
+    color: colors.textSecondary,
+  },
+  tabLabelActive: { color: colors.text },
+  tabUnderline: {
+    position: 'absolute',
+    bottom: 0,
+    left: spacing.md,
+    right: spacing.md,
+    height: 2,
+    backgroundColor: colors.accent,
+  },
+
+  // Shared row style (mirrors SettingsScreen)
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.base,
+    paddingVertical: 13,
+    borderTopWidth: 1,
+    borderTopColor: colors.borderFaint,
   },
-  tabBtnActive: { borderBottomColor: colors.accent },
-  tabIcon: { fontSize: 16 },
-  tabLabel: { ...typography.labelMedium, color: colors.textSecondary },
-  tabLabelActive: { color: colors.accent, fontWeight: '700' },
-  content: { padding: spacing.base, paddingBottom: spacing.xxxl, gap: spacing.md },
-  avatarSection: { alignItems: 'center', paddingVertical: spacing.xl },
+  rowLabel: {
+    ...typography.rowLabel,
+    flex: 1,
+  },
+  rowValue: {
+    ...typography.rowValue,
+    flexShrink: 0,
+    marginLeft: spacing.md,
+  },
+
+  // Section header
+  sectionHeader: {
+    ...typography.sectionLabel,
+    paddingHorizontal: spacing.base,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.sm,
+  },
+
+  // Edit input in row
+  editInput: {
+    flex: 1,
+    color: colors.text,
+    fontSize: 14,
+    textAlign: 'right',
+    borderBottomWidth: 1,
+    borderBottomColor: colors.accent,
+    paddingVertical: 2,
+    marginLeft: spacing.md,
+  },
+
+  // Hero (avatar + nickname + stats)
+  hero: {
+    alignItems: 'center',
+    paddingVertical: spacing.xl,
+    paddingHorizontal: spacing.base,
+    gap: spacing.md,
+  },
   avatarWrap: { position: 'relative' },
-  avatar: { width: 100, height: 100, borderRadius: 50, backgroundColor: colors.surfaceVariant },
+  avatar: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    backgroundColor: colors.surfaceVariant,
+  },
   avatarEdit: {
     position: 'absolute',
     bottom: 0,
@@ -391,101 +448,103 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  avatarEditIcon: { fontSize: 12 },
-  fieldGroup: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    paddingHorizontal: spacing.base,
-    borderWidth: 1,
-    borderColor: colors.border,
+  avatarEditIcon: { fontSize: 13, color: '#FFF' },
+  heroInfo: { alignItems: 'center', gap: 3 },
+  nickname: {
+    fontSize: 26,
+    fontWeight: '900',
+    color: colors.text,
+    letterSpacing: 2,
   },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    padding: spacing.base,
-    borderWidth: 1,
-    borderColor: colors.border,
+  realName: {
+    fontSize: 12,
+    fontWeight: '400',
+    color: colors.textSecondary,
+    letterSpacing: 0.5,
   },
-  cardTitle: {
-    ...typography.labelSmall,
-    color: colors.textMuted,
-    letterSpacing: 1.5,
-    marginBottom: spacing.md,
-  },
-  platformRow: {
+  statsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: colors.borderFaint,
+    gap: spacing.lg,
+    marginTop: spacing.sm,
   },
-  platformIcon: { fontSize: 18, width: 28 },
-  platformName: { ...typography.bodyMedium, color: colors.text, flex: 1 },
-  platformStatus: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: radius.full,
+  statItem: { alignItems: 'center', gap: 2 },
+  statValue: {
+    fontSize: 20,
+    fontWeight: '900',
+    color: colors.text,
+    letterSpacing: 0.5,
   },
-  statusConnected: { backgroundColor: '#1B3A2A' },
-  statusDisconnected: { backgroundColor: colors.surfaceVariant },
-  platformStatusText: { ...typography.labelSmall, color: colors.success, fontWeight: '700' },
-  sectionHeader: {
-    ...typography.labelSmall,
-    color: colors.textMuted,
+  statLabel: {
+    fontSize: 9,
+    fontWeight: '600',
+    color: colors.textSecondary,
     letterSpacing: 1.5,
-    marginBottom: spacing.md,
   },
-  friendRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderFaint,
-    gap: spacing.md,
+  statDivider: {
+    width: 1,
+    height: 30,
+    backgroundColor: colors.borderFaint,
   },
-  friendAvatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: colors.surfaceVariant },
+
+  // Content scroll
+  content: { paddingBottom: spacing.xxxl },
+
+  // Friends
+  friendAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.surfaceVariant,
+    marginRight: spacing.md,
+  },
   friendInfo: { flex: 1 },
-  friendNick: { ...typography.titleSmall, color: colors.text },
-  friendName: { ...typography.bodySmall, color: colors.textSecondary },
   chatBtn: { padding: spacing.sm },
-  chatBtnText: { fontSize: 22 },
+  chatBtnText: { fontSize: 22, color: colors.textSecondary },
   addFriendBtn: {
-    marginTop: spacing.lg,
+    marginHorizontal: spacing.base,
+    marginTop: spacing.xl,
     paddingVertical: spacing.md,
     borderRadius: radius.full,
     borderWidth: 1,
     borderColor: colors.accent,
     alignItems: 'center',
   },
-  addFriendText: { ...typography.labelLarge, color: colors.accent },
-  articleCard: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: colors.border,
-    marginBottom: spacing.md,
+  addFriendText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.accent,
+    letterSpacing: 2,
   },
-  articleImage: { width: '100%', height: 150 },
-  articleBody: { padding: spacing.base, gap: spacing.xs },
-  articleSource: { ...typography.labelSmall, color: colors.textMuted },
-  articleTitle: { ...typography.titleMedium, color: colors.text },
-  articleSummary: { ...typography.bodySmall, color: colors.textSecondary },
-  articleReadMore: { ...typography.labelMedium, color: colors.accent, marginTop: spacing.xs },
-  gameCard: {
+
+  // News
+  articleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    padding: spacing.base,
-    borderWidth: 1,
-    borderColor: colors.border,
-    marginBottom: spacing.sm,
+    paddingHorizontal: spacing.base,
+    paddingVertical: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.borderFaint,
     gap: spacing.md,
   },
-  gameIcon: { fontSize: 32, width: 44, textAlign: 'center' },
-  gameInfo: { flex: 1 },
-  gameTitle: { ...typography.titleMedium, color: colors.text },
-  gameDesc: { ...typography.bodySmall, color: colors.textSecondary, marginTop: 2 },
-  gameArrow: { fontSize: 24, color: colors.textMuted },
+  articleBody: { flex: 1 },
+  articleSource: {
+    fontSize: 9,
+    fontWeight: '600',
+    color: colors.textSecondary,
+    letterSpacing: 1.5,
+    marginBottom: 4,
+  },
+  articleTitle: {
+    fontSize: 15,
+    fontWeight: '900',
+    color: colors.text,
+    letterSpacing: 0.3,
+  },
+  articleThumb: {
+    width: 64,
+    height: 64,
+    borderRadius: radius.sm,
+    backgroundColor: colors.surfaceVariant,
+  },
 });

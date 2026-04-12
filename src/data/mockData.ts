@@ -342,6 +342,9 @@ export const CURRENT_USER: UserProfile = {
       followedArtists: [],
       friends: [],
       connectedPlatforms: { spotify: true },
+      followersCount: 0,
+      totalPlays: 0,
+      totalLikes: 0,
     },
     {
       id: 'u3',
@@ -353,6 +356,9 @@ export const CURRENT_USER: UserProfile = {
       followedArtists: [],
       friends: [],
       connectedPlatforms: { youtube: true, spotify: true },
+      followersCount: 0,
+      totalPlays: 0,
+      totalLikes: 0,
     },
   ],
   connectedPlatforms: {
@@ -361,6 +367,9 @@ export const CURRENT_USER: UserProfile = {
     soundcloud: false,
     appleMusic: false,
   },
+  followersCount: 1847,
+  totalPlays: 48320,
+  totalLikes: 312,
 };
 
 // ─── NEWS ────────────────────────────────────────────────────────────────────

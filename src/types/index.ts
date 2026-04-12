@@ -77,6 +77,9 @@ export interface UserProfile {
   followedArtists: Artist[];
   friends: UserProfile[];
   connectedPlatforms: Partial<Record<Platform, boolean>>;
+  followersCount: number;
+  totalPlays: number;
+  totalLikes: number;
 }
 
 export interface ChatMessage {
