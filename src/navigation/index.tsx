@@ -3,6 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import CustomTabBar from './CustomTabBar';
@@ -31,6 +32,7 @@ export type TabParamList = {
 
 const Tab = createBottomTabNavigator<TabParamList>();
 const RootStack = createNativeStackNavigator<RootStackParamList>();
+type MainTabsProps = NativeStackScreenProps<RootStackParamList, 'MainTabs'>;
 
 const navTheme = {
   ...DefaultTheme,
@@ -44,7 +46,7 @@ const navTheme = {
   },
 };
 
-function TabNavigator() {
+function TabNavigator({ navigation }: MainTabsProps) {
   return (
     <View style={styles.tabContainer}>
       <Tab.Navigator
@@ -58,7 +60,7 @@ function TabNavigator() {
         <Tab.Screen name="Playlist" component={PlaylistScreen} />
         <Tab.Screen name="Search" component={SearchScreen} />
       </Tab.Navigator>
-      <MiniPlayer />
+      <MiniPlayer onOpenPlayer={() => navigation.navigate('Player')} />
     </View>
   );
 }

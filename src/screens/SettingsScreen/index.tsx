@@ -66,13 +66,22 @@ function SectionHeader({ title }: { title: string }) {
 
 // ─── Picker helpers ───────────────────────────────────────────────────────────
 
-function cycleOption<T extends string>(current: T, options: T[]): T {
+function cycleOption<T extends string>(current: T, options: readonly T[]): T {
   const idx = options.indexOf(current);
   return options[(idx + 1) % options.length];
 }
 
 const QUALITY_OPTIONS: QualityOption[] = ['128kbps', '256kbps', '320kbps', 'lossless'];
 const FORMAT_OPTIONS: AudioFormat[] = ['mp3', 'mp4', 'aac', 'flac', 'ogg'];
+const THEME_OPTIONS: AppSettings['theme'][] = ['dark', 'light', 'system'];
+const FONT_SIZE_OPTIONS: AppSettings['fontSize'][] = ['small', 'normal', 'large', 'xlarge'];
+const MESSAGE_OPTIONS: AppSettings['whoCanMessage'][] = ['all', 'friends', 'nobody'];
+const STATS_OPTIONS: AppSettings['showStats'][] = ['all', 'friends', 'only_me'];
+const DIFFICULTY_OPTIONS: AppSettings['defaultDifficulty'][] = ['easy', 'medium', 'hard'];
+const GAME_SOURCE_OPTIONS: AppSettings['gameTrackSource'][] = ['followed', 'liked', 'library'];
+const BOT_LANGUAGE_OPTIONS: AppSettings['botLanguage'][] = ['it', 'en', 'system'];
+const READ_MODE_OPTIONS: AppSettings['defaultReadMode'][] = ['essential', 'original'];
+const NEWS_FREQUENCY_OPTIONS: AppSettings['newsUpdateFrequency'][] = ['1h', '6h', '12h', '24h'];
 
 // ─── Main screen ──────────────────────────────────────────────────────────────
 
@@ -106,7 +115,7 @@ export default function SettingsScreen() {
         <SettingRow
           label="TEMA"
           value={s.theme === 'dark' ? 'SCURO' : s.theme === 'light' ? 'CHIARO' : 'SISTEMA'}
-          onPress={() => update({ theme: cycleOption(s.theme, ['dark', 'light', 'system']) })}
+          onPress={() => update({ theme: cycleOption(s.theme, THEME_OPTIONS) })}
         />
         <SettingRow
           label="COLORE"
@@ -115,7 +124,7 @@ export default function SettingsScreen() {
         <SettingRow
           label="FONT SIZE"
           value={s.fontSize.toUpperCase()}
-          onPress={() => update({ fontSize: cycleOption(s.fontSize, ['small', 'normal', 'large', 'xlarge']) })}
+          onPress={() => update({ fontSize: cycleOption(s.fontSize, FONT_SIZE_OPTIONS) })}
         />
         <ToggleRow label="RIDUCI ANIMAZIONI" value={s.reduceAnimations} onToggle={() => tog('reduceAnimations')} />
         <ToggleRow label="CONTRASTO ELEVATO" value={s.highContrast} onToggle={() => tog('highContrast')} />
@@ -184,7 +193,7 @@ export default function SettingsScreen() {
         <SettingRow
           label="CHI PUÒ SCRIVERE"
           value={s.whoCanMessage === 'all' ? 'TUTTI' : s.whoCanMessage === 'friends' ? 'AMICI' : 'NESSUNO'}
-          onPress={() => update({ whoCanMessage: cycleOption(s.whoCanMessage, ['all', 'friends', 'nobody']) })}
+          onPress={() => update({ whoCanMessage: cycleOption(s.whoCanMessage, MESSAGE_OPTIONS) })}
         />
 
         {/* PRIVACY */}
@@ -193,7 +202,7 @@ export default function SettingsScreen() {
         <SettingRow
           label="STATISTICHE"
           value={s.showStats === 'all' ? 'TUTTI' : s.showStats === 'friends' ? 'AMICI' : 'SOLO IO'}
-          onPress={() => update({ showStats: cycleOption(s.showStats, ['all', 'friends', 'only_me']) })}
+          onPress={() => update({ showStats: cycleOption(s.showStats, STATS_OPTIONS) })}
         />
         <ToggleRow label="AUTH AVVIO" value={s.authOnStart} onToggle={() => tog('authOnStart')} />
         <TouchableOpacity style={styles.dangerRow}>
@@ -216,12 +225,12 @@ export default function SettingsScreen() {
         <SettingRow
           label="DIFFICOLTÀ"
           value={s.defaultDifficulty === 'easy' ? 'FACILE' : s.defaultDifficulty === 'medium' ? 'MEDIO' : 'DIFFICILE'}
-          onPress={() => update({ defaultDifficulty: cycleOption(s.defaultDifficulty, ['easy', 'medium', 'hard']) })}
+          onPress={() => update({ defaultDifficulty: cycleOption(s.defaultDifficulty, DIFFICULTY_OPTIONS) })}
         />
         <SettingRow
           label="SORGENTE"
           value={s.gameTrackSource === 'followed' ? 'SEGUITI' : s.gameTrackSource === 'liked' ? 'MI PIACE' : 'LIBRERIA'}
-          onPress={() => update({ gameTrackSource: cycleOption(s.gameTrackSource, ['followed', 'liked', 'library']) })}
+          onPress={() => update({ gameTrackSource: cycleOption(s.gameTrackSource, GAME_SOURCE_OPTIONS) })}
         />
         <ToggleRow label="EFFETTI SONORI" value={s.gameSounds} onToggle={() => tog('gameSounds')} />
 
@@ -230,7 +239,7 @@ export default function SettingsScreen() {
         <SettingRow
           label="LINGUA BOT"
           value={s.botLanguage === 'it' ? 'ITALIANO' : s.botLanguage === 'en' ? 'ENGLISH' : 'SISTEMA'}
-          onPress={() => update({ botLanguage: cycleOption(s.botLanguage, ['it', 'en', 'system']) })}
+          onPress={() => update({ botLanguage: cycleOption(s.botLanguage, BOT_LANGUAGE_OPTIONS) })}
         />
         <ToggleRow label="RISPOSTA VOCALE" value={s.botVoiceResponse} onToggle={() => tog('botVoiceResponse')} />
         <ToggleRow label="SALVA STORICO" value={s.saveBotHistory} onToggle={() => tog('saveBotHistory')} />
@@ -243,13 +252,13 @@ export default function SettingsScreen() {
         <SettingRow
           label="LETTURA"
           value={s.defaultReadMode === 'essential' ? 'ESSENZIALE' : 'ORIGINALE'}
-          onPress={() => update({ defaultReadMode: cycleOption(s.defaultReadMode, ['essential', 'original']) })}
+          onPress={() => update({ defaultReadMode: cycleOption(s.defaultReadMode, READ_MODE_OPTIONS) })}
         />
         <ToggleRow label="AGGIORNAMENTO AUTO" value={s.autoUpdateNews} onToggle={() => tog('autoUpdateNews')} />
         <SettingRow
           label="FREQUENZA"
           value={s.newsUpdateFrequency.toUpperCase()}
-          onPress={() => update({ newsUpdateFrequency: cycleOption(s.newsUpdateFrequency, ['1h', '6h', '12h', '24h']) })}
+          onPress={() => update({ newsUpdateFrequency: cycleOption(s.newsUpdateFrequency, NEWS_FREQUENCY_OPTIONS) })}
         />
 
         {/* INFO APP */}

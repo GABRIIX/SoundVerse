@@ -6,7 +6,8 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "test:player": "rm -rf .test-build && tsc --outDir .test-build --module commonjs --target es2020 --jsx react --esModuleInterop --skipLibCheck src/store/playerStore.ts src/data/mockData.ts src/types/index.ts && node --test src/store/playerStore.regression.test.js"
   },
   "dependencies": {
     "@react-navigation/bottom-tabs": "^6.5.20",

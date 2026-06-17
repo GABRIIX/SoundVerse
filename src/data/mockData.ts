@@ -19,7 +19,7 @@ export const ARTISTS: Artist[] = [
     genre: 'rap',
     followers: 3100000,
     verified: true,
-    platforms: { spotify: 'marra', apple_music: 'marra_am' },
+    platforms: { spotify: 'marra', appleMusic: 'marra_am' },
   },
   {
     id: 'a3',
@@ -37,7 +37,7 @@ export const ARTISTS: Artist[] = [
     genre: 'rap',
     followers: 2500000,
     verified: true,
-    platforms: { spotify: 'lazza', apple_music: 'lazza_am' },
+    platforms: { spotify: 'lazza', appleMusic: 'lazza_am' },
   },
   {
     id: 'a5',
@@ -64,7 +64,7 @@ export const ARTISTS: Artist[] = [
     genre: 'rap',
     followers: 3500000,
     verified: true,
-    platforms: { spotify: 'gue_pequeno', apple_music: 'gue_am' },
+    platforms: { spotify: 'gue_pequeno', appleMusic: 'gue_am' },
   },
   {
     id: 'a8',

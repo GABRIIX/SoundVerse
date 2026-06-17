@@ -43,12 +43,10 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   isLimitedToPlaylist: false,
 
   play: (track, playlist) => {
-    const { currentPlaylist, queue } = get();
-    const source = playlist ?? currentPlaylist;
-    const newQueue = source ? source.tracks : [track];
+    const newQueue = playlist ? playlist.tracks : [track];
     set({
       currentTrack: track,
-      currentPlaylist: playlist ?? get().currentPlaylist,
+      currentPlaylist: playlist ?? null,
       queue: newQueue,
       isPlaying: true,
       duration: track.duration,
