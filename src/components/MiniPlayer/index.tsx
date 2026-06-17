@@ -11,7 +11,11 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { usePlayerStore } from '../../store/playerStore';
 import { colors, gradients, spacing, radius, typography, MINI_PLAYER_HEIGHT } from '../../theme';
 
-export default function MiniPlayer() {
+type MiniPlayerProps = {
+  onOpenPlayer: () => void;
+};
+
+export default function MiniPlayer({ onOpenPlayer }: MiniPlayerProps) {
   const {
     currentTrack,
     isPlaying,
@@ -19,13 +23,12 @@ export default function MiniPlayer() {
     next,
     prev,
     toggleLike,
-    togglePlayerExpanded,
   } = usePlayerStore();
 
   if (!currentTrack) return null;
 
   return (
-    <Pressable onPress={togglePlayerExpanded}>
+    <Pressable onPress={onOpenPlayer}>
       <LinearGradient
         colors={gradients.miniPlayer}
         start={{ x: 0, y: 0 }}

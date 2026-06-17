@@ -9,11 +9,14 @@ import {
   Dimensions,
   Modal,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePlayerStore } from '../../store/playerStore';
 import PlatformBadge from '../../components/PlatformBadge';
 import { colors, spacing, radius, typography, shadows } from '../../theme';
 import { formatDuration } from '../../data/mockData';
+import type { RootStackParamList } from '../../navigation';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const COVER_SIZE = SCREEN_WIDTH - spacing.base * 2;
@@ -33,6 +36,7 @@ const GENRE_ICONS: Record<string, string> = {
 
 export default function PlayerScreen() {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const {
     currentTrack,
     isPlaying,
@@ -49,14 +53,21 @@ export default function PlayerScreen() {
     isLimitedToPlaylist,
     toggleLimitToPlaylist,
     queue,
-    togglePlayerExpanded,
   } = usePlayerStore();
 
   const [showQueue, setShowQueue] = useState(false);
   const [showLyrics, setShowLyrics] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
 
-  if (!currentTrack) return null;
+  if (!currentTrack) {
+    return (
+      <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeBtn}>
+          <Text style={styles.closeText}>×</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   const elapsed = Math.floor(progress * currentTrack.duration);
   const remaining = currentTrack.duration - elapsed;
@@ -66,8 +77,12 @@ export default function PlayerScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-      {/* Drag handle */}
-      <View style={styles.handle} />
+      <View style={styles.header}>
+        <View style={styles.handle} />
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeBtn}>
+          <Text style={styles.closeText}>×</Text>
+        </TouchableOpacity>
+      </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
 
@@ -275,14 +290,31 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.surfaceModal,
   },
+  header: {
+    minHeight: 56,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   handle: {
     width: 36,
     height: 4,
     borderRadius: 2,
     backgroundColor: colors.border,
-    alignSelf: 'center',
-    marginTop: spacing.md,
-    marginBottom: spacing.sm,
+  },
+  closeBtn: {
+    position: 'absolute',
+    top: spacing.xs,
+    right: spacing.base,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  closeText: {
+    fontSize: 28,
+    color: colors.textSecondary,
+    lineHeight: 32,
   },
   content: {
     padding: spacing.base,
