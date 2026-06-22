@@ -1,10 +1,27 @@
 import { create } from 'zustand';
 import { Track, Playlist } from '../types';
 
+type LikeOverrides = Record<string, boolean>;
+
+const applyLikeOverride = (track: Track, likeOverrides: LikeOverrides): Track => {
+  const liked = likeOverrides[track.id];
+  return liked === undefined ? track : { ...track, liked };
+};
+
+const applyLikeOverrides = (tracks: Track[], likeOverrides: LikeOverrides): Track[] =>
+  tracks.map(track => applyLikeOverride(track, likeOverrides));
+
+const applyPlaylistLikeOverrides = (
+  playlist: Playlist | null,
+  likeOverrides: LikeOverrides,
+): Playlist | null =>
+  playlist ? { ...playlist, tracks: applyLikeOverrides(playlist.tracks, likeOverrides) } : null;
+
 interface PlayerState {
   currentTrack: Track | null;
   currentPlaylist: Playlist | null;
   queue: Track[];
+  likeOverrides: LikeOverrides;
   isPlaying: boolean;
   isShuffled: boolean;
   loopMode: 'none' | 'track' | 'playlist';
@@ -34,6 +51,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   currentTrack: null,
   currentPlaylist: null,
   queue: [],
+  likeOverrides: {},
   isPlaying: false,
   isShuffled: false,
   loopMode: 'none',
@@ -43,15 +61,16 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   isLimitedToPlaylist: false,
 
   play: (track, playlist) => {
-    const { currentPlaylist, queue } = get();
+    const { currentPlaylist, likeOverrides } = get();
     const source = playlist ?? currentPlaylist;
-    const newQueue = source ? source.tracks : [track];
+    const nextTrack = applyLikeOverride(track, likeOverrides);
+    const newQueue = source ? applyLikeOverrides(source.tracks, likeOverrides) : [nextTrack];
     set({
-      currentTrack: track,
-      currentPlaylist: playlist ?? get().currentPlaylist,
+      currentTrack: nextTrack,
+      currentPlaylist: applyPlaylistLikeOverrides(playlist ?? currentPlaylist, likeOverrides),
       queue: newQueue,
       isPlaying: true,
-      duration: track.duration,
+      duration: nextTrack.duration,
       progress: 0,
     });
   },
@@ -107,12 +126,21 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   toggleLimitToPlaylist: () => set(s => ({ isLimitedToPlaylist: !s.isLimitedToPlaylist })),
 
   toggleLike: (trackId) => {
-    const { currentTrack } = get();
+    const { currentTrack, currentPlaylist, queue, likeOverrides } = get();
     if (currentTrack?.id === trackId) {
-      set({ currentTrack: { ...currentTrack, liked: !currentTrack.liked } });
+      const liked = !(likeOverrides[trackId] ?? currentTrack.liked);
+      const nextLikeOverrides = { ...likeOverrides, [trackId]: liked };
+      set({
+        likeOverrides: nextLikeOverrides,
+        currentTrack: { ...currentTrack, liked },
+        currentPlaylist: applyPlaylistLikeOverrides(currentPlaylist, nextLikeOverrides),
+        queue: applyLikeOverrides(queue, nextLikeOverrides),
+      });
     }
   },
 
-  setQueue: (tracks) => set({ queue: tracks }),
-  addToQueue: (track) => set(s => ({ queue: [...s.queue, track] })),
+  setQueue: (tracks) => set(s => ({ queue: applyLikeOverrides(tracks, s.likeOverrides) })),
+  addToQueue: (track) => set(s => ({
+    queue: [...s.queue, applyLikeOverride(track, s.likeOverrides)],
+  })),
 }));
