@@ -1,7 +1,7 @@
 import { PLAYLISTS, TRACKS } from '../data/mockData';
 import { usePlayerStore } from './playerStore';
 
-function assert(condition: boolean, message: string) {
+function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message);
 }
 
